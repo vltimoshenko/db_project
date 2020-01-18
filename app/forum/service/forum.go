@@ -22,6 +22,10 @@ func (s Service) CreateForum(body io.ReadCloser) (Forum, error) {
 		//return uuid.UUID{}, errors.New(InvalidJSONMsg)
 	}
 
+	_, err = s.Repository.GetUserByNickname(forum.User)
+	if err != nil {
+		return Forum{}, fmt.Errorf(messages.UserNotFound)
+	}
 	returnForum, err := s.Repository.GetForumBySlug(forum.Slug)
 	if err == nil {
 		return returnForum, fmt.Errorf(messages.ForumAlreadyExists)
