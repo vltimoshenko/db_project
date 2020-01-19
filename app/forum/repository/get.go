@@ -252,45 +252,45 @@ func (r *Repository) GetVote(nickname string, thread int) (Vote, error) {
 // 	return users, nil
 // }
 
-func (r *Repository) GetPostsFlat(threadID int, params map[string]interface{}) ([]Post, error) {
-	queryStr := paramsGetPostsFlat(params)
-	posts := []Post{}
+// func (r *Repository) GetPostsFlat(threadID int, params map[string]interface{}) ([]Post, error) {
+// 	queryStr := paramsGetPostsFlat(params)
+// 	posts := []Post{}
 
-	query, args, err := sqlx.Named(queryStr, params)
-	if err != nil {
-		log.Print(err)
-		return posts, err
-	}
+// 	query, args, err := sqlx.Named(queryStr, params)
+// 	if err != nil {
+// 		log.Print(err)
+// 		return posts, err
+// 	}
 
-	query, args, err = sqlx.In(query, args...)
-	if err != nil {
-		log.Print(err)
-		return posts, err
-	}
+// 	query, args, err = sqlx.In(query, args...)
+// 	if err != nil {
+// 		log.Print(err)
+// 		return posts, err
+// 	}
 
-	query = r.DbConn.Rebind(query)
+// 	query = r.DbConn.Rebind(query)
 
-	rows, err := r.DbConn.Queryx(query, args...)
+// 	rows, err := r.DbConn.Queryx(query, args...)
 
-	if err != nil {
-		log.Print(err)
-		return posts, err
-	}
-	defer rows.Close()
+// 	if err != nil {
+// 		log.Print(err)
+// 		return posts, err
+// 	}
+// 	defer rows.Close()
 
-	for rows.Next() {
-		var post Post
+// 	for rows.Next() {
+// 		var post Post
 
-		err = rows.StructScan(&post)
-		if err != nil {
-			log.Printf("GetPosts: %s\n", err)
-			return posts, err
-		}
+// 		err = rows.StructScan(&post)
+// 		if err != nil {
+// 			log.Printf("GetPosts: %s\n", err)
+// 			return posts, err
+// 		}
 
-		posts = append(posts, post)
-	}
-	return posts, nil
-}
+// 		posts = append(posts, post)
+// 	}
+// 	return posts, nil
+// }
 
 // func (r *Repository) GetPostsTree(threadID int, params map[string]interface{}) ([]Post, error) {
 // 	queryStr := paramsGetPostsFlat(params)
@@ -576,4 +576,32 @@ func (r *Repository) GetPosts(threadID int, limit, since, sort, desc string) (Po
 	}
 
 	return posts, nil
+}
+
+func (r *Repository) GetUserByNickname(nickname string) (User, error) {
+
+	row := r.DbConn.QueryRowx(sql_queries.SelectUserByNickname, nickname)
+
+	var user User
+	err := row.StructScan(&user)
+	if err != nil {
+		fmt.Println(err)
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (r *Repository) GetUserByEmail(email string) (User, error) {
+
+	row := r.DbConn.QueryRowx(sql_queries.SelectUserByEmail, email)
+
+	var user User
+	err := row.StructScan(&user)
+	if err != nil {
+		fmt.Println(err)
+		return user, err
+	}
+
+	return user, nil
 }

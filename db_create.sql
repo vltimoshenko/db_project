@@ -26,26 +26,30 @@ CREATE TABLE threads(
     id SERIAL PRIMARY KEY,
     author text NOT NULL REFERENCES persons(nickname) ON DELETE CASCADE NOT NULL,
     created timestamptz DEFAULT now(),
-    forum text REFERENCES forums(slug) ON DELETE CASCADE NOT NULL,
+    forum text NOT NULL,
+   -- forum text REFERENCES forums(slug) ON DELETE CASCADE NOT NULL,
     message text NOT NULL,
-    slug text UNIQUE,
+    slug text UNIQUE, 
     title text NOT NULL,
     votes integer DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE posts(
     id SERIAL PRIMARY KEY, --maybe need to switch serial to int
-    author text NOT NULL REFERENCES persons(nickname) ON DELETE CASCADE NOT NULL,
+    author text NOT NULL REFERENCES persons(nickname) ON DELETE CASCADE,
+    -- author text NOT NULL,
     created timestamp with time zone DEFAULT '1970-01-01 03:00:00+03'::timestamp with time zone NOT NULL,
     forum text REFERENCES forums(slug) ON DELETE CASCADE NOT NULL,
     is_edited boolean DEFAULT false NOT NULL,
     message text NOT NULL,
     parent integer DEFAULT 0 NOT NULL, --reference on parent id
     thread integer REFERENCES threads(id) ON DELETE CASCADE NOT NULL
+    -- thread integer NOT NULL
+
 );
 
 CREATE TABLE votes(
-    nickname text NOT NULL,
+    nickname text NOT NULL REFERENCES persons(nickname) ON DELETE CASCADE,
     voice smallint NOT NULL,
     thread integer REFERENCES threads(id) ON DELETE CASCADE NOT NULL,
     PRIMARY KEY(nickname, thread)

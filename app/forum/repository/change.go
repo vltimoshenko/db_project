@@ -29,7 +29,7 @@ func (r *Repository) ChangeThreadRate(dif int, threadID int) error {
 }
 
 func (r *Repository) ChangeVote(updateVote Vote, threadID int) error {
-	_, err := r.DbConn.Exec(sql_queries.UpdateVote, updateVote.Voice, updateVote.Nickname,
+	_, err := r.DbConn.Exec(sql_queries.UpdateVote, updateVote.Voice, updateVote.Nickname, //remove update nickname
 		threadID)
 	return err
 }
@@ -48,11 +48,11 @@ func (r *Repository) ChangeUser(user NewUser, nickname string) error {
 	return nil
 }
 
-func (r *Repository) ChangePost(postUpdate PostUpdate, postID int) error {
+func (r *Repository) ChangePost(postUpdate PostUpdate, postID int, isEdited bool) error {
 	// var id int
 	//should do two methods by slug and by id
 	_, err := r.DbConn.Exec(sql_queries.UpdatePost, postUpdate.Message,
-		true, postID) //should read id?
+		isEdited, postID) //should read id?
 
 	// if err != nil {
 	// 	fmt.Println(err.Error())

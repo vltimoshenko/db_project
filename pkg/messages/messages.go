@@ -11,4 +11,6 @@ const (
 	ParentPostDoesNotExist    = "Parent post does not exist"
 	TryAnotherNicknameOrEmail = "Try another nickname or email"
 	UserAlreadyExists         = "User already exists"
+
+	ParentInAnotherThread = "Parent post was created in another thread"
 )

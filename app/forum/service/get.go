@@ -65,7 +65,7 @@ func (s Service) GetPost(postID int, params []string) (map[string]interface{}, e
 	postInfo["post"] = post
 	for _, obj := range params {
 		switch obj {
-		case "author":
+		case "user":
 			postInfo["author"], err = s.Repository.GetUserByNickname(post.Author)
 		case "forum":
 			postInfo["forum"], err = s.Repository.GetForumBySlug(post.Forum)
@@ -133,4 +133,12 @@ func (s Service) GetPosts(slugOrID string, params map[string]interface{}) ([]Pos
 	posts, err := s.Repository.GetPosts(thread.ID, limit, since, sort, desc)
 
 	return posts, err
+}
+
+func (s Service) GetUser(nickname string) (User, error) {
+	user, err := s.Repository.GetUserByNickname(nickname)
+	if err != nil {
+		return user, fmt.Errorf(messages.UserNotFound)
+	}
+	return user, nil
 }

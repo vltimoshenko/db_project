@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/db_project/pkg/messages"
 	// . "github.com/db_project/pkg/models"
@@ -175,13 +176,14 @@ func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 
 	paramsMap, _ := url.ParseQuery(r.URL.Query().Encode())
 
-	fmt.Printf("RELATED %d\n", len(paramsMap["related"]))
 	var params []string
-	for _, str := range paramsMap["related"] {
-		params = append(params, str)
-	}
+	if len(paramsMap) > 0 {
+		str := paramsMap["related"]
+		params = strings.Split(str[0], ",")
 
-	fmt.Printf("RELATED %s\n", params)
+		fmt.Printf("RELATED %d\n", len(params))
+		fmt.Printf("RELATED %s\n", params)
+	}
 
 	var postInfo map[string]interface{}
 	postInfo, err = h.Service.GetPost(id, params)

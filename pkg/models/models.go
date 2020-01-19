@@ -31,7 +31,7 @@ type Post struct {
 	Created  string `json:"created"    db:"created"`
 	Forum    string `json:"forum"      db:"forum"`
 	ID       int    `json:"id"         db:"id"`
-	IsEdited bool   `json:"is_edited"  db:"is_edited"`
+	IsEdited bool   `json:"isEdited"  db:"is_edited"`
 	Message  string `json:"message"    db:"message"`
 	Parent   int    `json:"parent"     db:"parent"`
 	Thread   int    `json:"thread"     db:"thread"`

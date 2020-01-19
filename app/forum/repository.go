@@ -35,7 +35,7 @@ type RepositoryInterface interface {
 	ChangeThread(ThreadUpdate, int) error
 	ChangeThreadRate(int, int) error
 	ChangeVote(Vote, int) error
-	ChangePost(PostUpdate, int) error
+	ChangePost(PostUpdate, int, bool) error
 
 	LoadSchemaSQL() error
 	ClearDB() error

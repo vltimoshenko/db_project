@@ -2,8 +2,8 @@ package delivery
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/db_project/pkg/messages"
@@ -24,17 +24,12 @@ func (h *Handler) CreatePosts(w http.ResponseWriter, r *http.Request) {
 	forum, err := h.Service.CreatePosts(r.Body, slugOrId)
 
 	if err != nil {
-		if err.Error() == messages.UserNotFound {
+		if err.Error() == messages.ParentInAnotherThread || err.Error() == messages.ParentPostDoesNotExist {
 			SetError(w, 409, err.Error())
 			return
 		}
 
-		if err.Error() == messages.ThreadDoesNotExist {
-			SetError(w, 404, err.Error())
-			return
-		}
-
-		if err.Error() == messages.ParentPostDoesNotExist {
+		if err.Error() == messages.ThreadDoesNotExist || err.Error() == messages.UserNotFound {
 			SetError(w, 404, err.Error())
 			return
 		}
@@ -51,11 +46,12 @@ func (h *Handler) CreateForum(w http.ResponseWriter, r *http.Request) { //+
 	code := 201
 
 	forum, err := h.Service.CreateForum(r.Body)
+
+	var answer []byte
 	if err != nil {
 		if err.Error() == messages.ForumAlreadyExists {
-			// code = 409
-			SetError(w, 409, err.Error())
-			return
+			code = 409
+			answer, _ = json.Marshal(forum)
 		}
 
 		if err.Error() == messages.UserNotFound {
@@ -63,8 +59,14 @@ func (h *Handler) CreateForum(w http.ResponseWriter, r *http.Request) { //+
 			return
 		}
 	}
+	if code != 409 {
+		answer, _ = json.Marshal(NewForum{
+			Slug:  forum.Slug,
+			Title: forum.Title,
+			User:  forum.User,
+		})
+	}
 
-	answer, _ := json.Marshal(forum)
 	w.WriteHeader(code)
 	w.Write(answer)
 }
@@ -113,7 +115,7 @@ func (h *Handler) CreateThread(w http.ResponseWriter, r *http.Request) { //+
 
 func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.Header().Set("Content-Type", "application/json")
 	code := 201
 
 	nickname, ok := mux.Vars(r)["nickname"]
@@ -132,7 +134,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	user, err := h.Service.CreateUser(newUser, nickname)
+	users, err := h.Service.CreateUser(newUser, nickname)
 	if err != nil {
 		if err.Error() == messages.UserAlreadyExists {
 			code = 409
@@ -141,10 +143,15 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		// 	SetError(w, 404, err.Error())
 		// 	return
 		// }
-		log.Println(err.Error())
+		fmt.Println(err.Error())
 	}
 
-	answer, _ := json.Marshal(user)
+	var answer []byte
+	if err != nil {
+		answer, _ = json.Marshal(users)
+	} else {
+		answer, _ = json.Marshal(users[0])
+	}
 
 	w.WriteHeader(code)
 	w.Write(answer)
@@ -173,7 +180,7 @@ func (h *Handler) Vote(w http.ResponseWriter, r *http.Request) {
 	thread, err := h.Service.Vote(vote, slugOrId)
 
 	if err != nil {
-		if err.Error() == messages.ThreadDoesNotExist {
+		if err.Error() == messages.ThreadDoesNotExist || err.Error() == messages.UserNotFound {
 			SetError(w, 404, err.Error())
 			return
 		}

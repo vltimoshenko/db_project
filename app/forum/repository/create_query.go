@@ -11,8 +11,9 @@ func paramsThreadsToQuery(params map[string]interface{}) string {
 	if params["since"] != nil {
 		if params["desc"] == "true" {
 			query += "AND t.created <= :since "
+		} else {
+			query += "AND t.created >= :since "
 		}
-		query += "AND t.created >= :since "
 	}
 
 	query += `ORDER BY t.created `
@@ -32,9 +33,13 @@ func paramsThreadsToQuery(params map[string]interface{}) string {
 
 func paramsGetUsers(params map[string]interface{}) string {
 	query := sql_queries.SelectUsersWithParams
-	// if params["since"] != nil {
-	// 	query += "AND t.created <= :since "
-	// }
+	if params["since"] != nil {
+		if params["desc"] == "true" {
+			query += "AND lower(p.nickname) < lower(:since) "
+		} else {
+			query += "AND lower(p.nickname) > lower(:since) "
+		}
+	}
 
 	query += `ORDER BY lower(p.nickname) `
 
@@ -51,25 +56,25 @@ func paramsGetUsers(params map[string]interface{}) string {
 	return query
 }
 
-func paramsGetPostsFlat(params map[string]interface{}) string {
-	query := sql_queries.SelectUsersWithParams
-	if params["since"] != nil {
-		query += "AND p.id > :since "
-	}
+// func paramsGetPostsFlat(params map[string]interface{}) string {
+// 	query := sql_queries.SelectUsersWithParams
+// 	if params["since"] != nil {
+// 		query += "AND p.id > :since "
+// 	}
 
-	if params["sort"] == "flat" {
-		query += `ORDER BY p.id  `
+// 	if params["sort"] == "flat" {
+// 		query += `ORDER BY p.id  `
 
-		if params["desc"] != nil {
-			query += "DESC "
-		}
-	}
+// 		if params["desc"] != nil {
+// 			query += "DESC "
+// 		}
+// 	}
 
-	if params["limit"] != nil {
-		query += "LIMIT :limit "
-	}
+// 	if params["limit"] != nil {
+// 		query += "LIMIT :limit "
+// 	}
 
-	query += ";"
-	fmt.Println(query)
-	return query
-}
+// 	query += ";"
+// 	fmt.Println(query)
+// 	return query
+// }

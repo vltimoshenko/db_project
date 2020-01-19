@@ -2,10 +2,12 @@ package sql_queries
 
 const (
 	InsertForum = `INSERT INTO forums(slug, title, person)
-		VALUES($1, $2, $3) RETURNING id;`
-	InsertThread = `INSERT INTO threads(author, message, title, forum, slug)
-		VALUES($1,$2,$3,$4,$5) RETURNING id;`
-	InsertUser = `INSERT INTO persons(about, email, fullname, nickname)
+		VALUES($1, $2, $3)`
+	InsertThread                       = `INSERT INTO threads (author, created, message, title, forum) values ($1,$2,$3,$4,$5) RETURNING id;`
+	InsertThreadWithoutCreated         = `INSERT INTO threads (author, message, title, forum) values ($1,$2,$3,$4) RETURNING id;`
+	InsertThreadWithSlugWithoutCreated = `INSERT INTO threads (author, message, title, forum, slug) values ($1,$2,$3,$4,$5) RETURNING id;`
+	InsertThreadWithSlug               = `INSERT INTO threads (author, created, message, title, forum, slug) values ($1,$2,$3,$4,$5,$6) RETURNING id;`
+	InsertUser                         = `INSERT INTO persons(about, email, fullname, nickname)
 		VALUES($1,$2,$3,$4);`
 	InsertPost = "INSERT INTO posts(author, message, parent, thread, forum, created) " +
 		"VALUES ($1,$2,$3,$4,$5,$6) RETURNING id;"
@@ -18,8 +20,8 @@ const (
 	SelectThreadsWithParams = `SELECT t.author, t.created, t.forum, t.id, t.message, t.slug, t.title, t.votes ` +
 		`FROM threads as t WHERE lower(t.forum) = lower(:forum) `
 
-	SelectUserByNickname = "SELECT p.about, p.email, p.fullname, p.nickname FROM persons as p WHERE p.nickname = $1"
-	SelectUserByEmail    = "SELECT p.about, p.email, p.fullname, p.nickname FROM persons as p WHERE p.email = $1"
+	SelectUserByNickname = "SELECT p.about, p.email, p.fullname, p.nickname FROM persons as p WHERE lower(p.nickname) = lower($1)"
+	SelectUserByEmail    = "SELECT p.about, p.email, p.fullname, p.nickname FROM persons as p WHERE lower(p.email) = lower($1)"
 
 	UpdateUserByNickname = "UPDATE persons SET about = $1, email = $2, fullname = $3 WHERE nickname = $4 RETURNING id;"
 	UpdateThreadByID     = "UPDATE threads SET message = $1, title = $2 WHERE id = $3;"

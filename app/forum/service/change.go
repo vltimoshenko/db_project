@@ -25,6 +25,13 @@ func (s Service) ChangeThread(threadUpdate ThreadUpdate, slugOrId string) (Threa
 		return thread, fmt.Errorf(messages.ThreadDoesNotExist)
 	}
 
+	if threadUpdate.Message == "" {
+		threadUpdate.Message = thread.Message
+	}
+	if threadUpdate.Title == "" {
+		threadUpdate.Title = thread.Title
+	}
+
 	err = s.Repository.ChangeThread(threadUpdate, thread.ID)
 	if err != nil {
 		return thread, fmt.Errorf(messages.ThreadDoesNotExist) //should be another error
@@ -38,7 +45,7 @@ func (s Service) ChangeThread(threadUpdate ThreadUpdate, slugOrId string) (Threa
 
 func (s Service) ChangeUser(newUser NewUser, nickname string) (User, error) {
 
-	_, err := s.Repository.GetUserByNickname(nickname)
+	oldUser, err := s.Repository.GetUserByNickname(nickname)
 	if err != nil {
 		return User{}, fmt.Errorf(messages.UserNotFound)
 	}
@@ -52,6 +59,16 @@ func (s Service) ChangeUser(newUser NewUser, nickname string) (User, error) {
 
 	if userByEmail.Nickname != "" && userByEmail.Nickname != nickname {
 		return User{}, fmt.Errorf(messages.UserAlreadyExists)
+	}
+
+	if newUser.About == "" {
+		newUser.About = oldUser.About
+	}
+	if newUser.Email == "" {
+		newUser.Email = oldUser.Email
+	}
+	if newUser.Fullname == "" {
+		newUser.Fullname = oldUser.Fullname
 	}
 
 	err = s.Repository.ChangeUser(newUser, nickname)
@@ -77,10 +94,15 @@ func (s Service) ChangePost(updatePost PostUpdate, postID int) (Post, error) {
 		return post, fmt.Errorf(messages.PostDoesNotExist)
 	}
 
-	err = s.Repository.ChangePost(updatePost, post.ID)
-
-	post.Message = updatePost.Message
 	post.IsEdited = true
+	if updatePost.Message == "" || updatePost.Message == post.Message {
+		updatePost.Message = post.Message
+		post.IsEdited = false
+	} else {
+		post.Message = updatePost.Message
+	}
+
+	err = s.Repository.ChangePost(updatePost, post.ID, post.IsEdited)
 
 	return post, nil
 }

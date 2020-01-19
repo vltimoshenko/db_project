@@ -8,7 +8,7 @@ import (
 type ServiceInterface interface {
 	CreateForum(body io.ReadCloser) (Forum, error)
 	CreateThread(NewThread, string) (Thread, error)
-	CreateUser(NewUser, string) (User, error)
+	CreateUser(NewUser, string) ([]User, error)
 	CreatePosts(body io.ReadCloser, slugOrId string) ([]Post, error)
 
 	GetUser(string) (User, error)
