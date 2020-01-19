@@ -25,20 +25,22 @@ func (s Service) ChangeThread(threadUpdate ThreadUpdate, slugOrId string) (Threa
 		return thread, fmt.Errorf(messages.ThreadDoesNotExist)
 	}
 
-	if threadUpdate.Message == "" {
+	if threadUpdate.Message == " " || len(threadUpdate.Message) == 0 {
 		threadUpdate.Message = thread.Message
+	} else {
+		thread.Message = threadUpdate.Message
 	}
-	if threadUpdate.Title == "" {
+
+	if threadUpdate.Title == " " || len(threadUpdate.Title) == 0 {
 		threadUpdate.Title = thread.Title
+	} else {
+		thread.Title = threadUpdate.Title
 	}
 
 	err = s.Repository.ChangeThread(threadUpdate, thread.ID)
 	if err != nil {
 		return thread, fmt.Errorf(messages.ThreadDoesNotExist) //should be another error
 	}
-
-	thread.Message = threadUpdate.Message
-	thread.Title = threadUpdate.Title
 
 	return thread, nil
 }
