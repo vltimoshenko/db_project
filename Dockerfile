@@ -32,9 +32,6 @@ RUN service postgresql start &&\
 RUN echo "include_dir='conf.d'" >> /etc/postgresql/$PGVER/main/postgresql.conf
 ADD postgres.conf /etc/postgresql/$PGVER/main/conf.d/basic.conf
 
-#COPY config/pg_hba.conf /etc/postgresql/$PGVER/main/pg_hba.conf
-#COPY config/postgresql.conf /etc/postgresql/$PGVER/main/postgresql.conf
-
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 
 COPY db_create.sql .
