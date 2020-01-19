@@ -6,15 +6,16 @@
 
 
 CREATE TABLE persons(
-    id SERIAL PRIMARY KEY,
+    -- id SERIAL PRIMARY KEY,
+    nickname text PRIMARY KEY,
     about text,
     email text NOT NULL UNIQUE,
-    fullname text NOT NULL,
-    nickname text NOT NULL UNIQUE
+    fullname text NOT NULL
+    -- nickname text NOT NULL UNIQUE
 );
 
 CREATE TABLE forums(
-    id serial,
+    -- id serial,
     posts integer DEFAULT 0 NOT NULL,
     slug text PRIMARY KEY,
     threads integer DEFAULT 0 NOT NULL,
@@ -47,6 +48,18 @@ CREATE TABLE posts(
     -- thread integer NOT NULL
 
 );
+
+CREATE INDEX idx_persons_email
+ON persons (email);
+
+CREATE INDEX idx_threads_slug
+ON threads (slug);
+
+CREATE INDEX idx_posts_parent
+ON posts (parent);
+
+CREATE INDEX idx_posts_thread
+ON posts (thread);
 
 CREATE TABLE votes(
     nickname text NOT NULL REFERENCES persons(nickname) ON DELETE CASCADE,

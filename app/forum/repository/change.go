@@ -35,16 +35,15 @@ func (r *Repository) ChangeVote(updateVote Vote, threadID int) error {
 }
 
 func (r *Repository) ChangeUser(user NewUser, nickname string) error {
-	var id int
-	err := r.DbConn.QueryRow(sql_queries.UpdateUserByNickname, user.About,
-		user.Email, user.Fullname, nickname).Scan(&id) //should read id?
+	_, err := r.DbConn.Exec(sql_queries.UpdateUserByNickname, user.About,
+		user.Email, user.Fullname, nickname) //should read id?
 
 	if err != nil {
 		fmt.Println(err.Error())
 		return fmt.Errorf(messages.UserAlreadyExists)
 	}
 
-	fmt.Println(id)
+	// fmt.Println(id)
 	return nil
 }
 
