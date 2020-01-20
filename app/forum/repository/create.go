@@ -11,18 +11,6 @@ import (
 	"github.com/db_project/pkg/sql_queries"
 )
 
-// func (r *Repository) CreateThread(thread NewThread, forum string) (int, error) {
-// 	var id int
-// 	err := r.DbConn.QueryRow(sql_queries.InsertThread, thread.Author,
-// 		thread.Message, thread.Title, forum, thread.Slug).Scan(&id)
-// 	if err != nil {
-// 		fmt.Println(err.Error())
-// 		return id, fmt.Errorf(messages.UserNotFound)
-// 	}
-// 	fmt.Println(id)
-// 	return id, nil
-// }
-
 func (r *Repository) CreatePosts(posts []NewPost, threadID int, forum string) ([]Post, error) {
 	tx, _ := r.DbConn.Begin()
 

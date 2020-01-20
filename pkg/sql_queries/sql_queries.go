@@ -7,9 +7,8 @@ const (
 	InsertThreadWithoutCreated         = `INSERT INTO threads (author, message, title, forum) values ($1,$2,$3,$4) RETURNING id;`
 	InsertThreadWithSlugWithoutCreated = `INSERT INTO threads (author, message, title, forum, slug) values ($1,$2,$3,$4,$5) RETURNING id;`
 	InsertThreadWithSlug               = `INSERT INTO threads (author, created, message, title, forum, slug) values ($1,$2,$3,$4,$5,$6) RETURNING id;`
-	InsertUser                         = `INSERT INTO persons(about, email, fullname, nickname)
-		VALUES($1,$2,$3,$4);`
-	InsertPost = "INSERT INTO posts(author, message, parent, thread, forum, created) " +
+	InsertUser                         = `INSERT INTO persons(about, email, fullname, nickname)VALUES($1,$2,$3,$4);`
+	InsertPost                         = "INSERT INTO posts(author, message, parent, thread, forum, created) " +
 		"VALUES ($1,$2,$3,$4,$5,$6) RETURNING id;"
 	InsertVoteByThreadID   = "INSERT INTO votes (nickname, voice, thread)VALUES($1,$2,$3);"
 	InsertVoteByThreadSlug = "INSERT INTO votes (nickname, voice, thread)VALUES" +
