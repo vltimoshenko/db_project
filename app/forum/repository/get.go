@@ -151,11 +151,14 @@ func (r *Repository) GetThreads(params map[string]interface{}) ([]Thread, error)
 
 	for rows.Next() {
 		var thread Thread
+		var slug pgtype.Text
 
-		err = rows.StructScan(&thread)
+		err := rows.Scan(&thread.Author, &thread.Created, &thread.Forum, &thread.ID, &thread.Message,
+			&slug, &thread.Title, &thread.Votes)
+		thread.Slug = slug.String
 		if err != nil {
-			log.Printf("GetThreads: %s\n", err)
-			return threads, err
+			fmt.Println(err)
+			return threads, fmt.Errorf(messages.ThreadDoesNotExist)
 		}
 
 		threads = append(threads, thread)

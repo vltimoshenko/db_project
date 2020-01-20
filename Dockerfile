@@ -41,6 +41,5 @@ ADD postgres.conf /etc/postgresql/$PGVER/main/conf.d/basic.conf
 
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 
-# COPY db_create.sql .
 COPY --from=builder /usr/src/app/db_project .
 CMD service postgresql start && ./db_project

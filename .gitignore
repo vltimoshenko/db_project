@@ -7,3 +7,4 @@ run_test.sh
 start_docker.sh
 stop_docker.sh
 db_project
+tech-db-forum.dat.gz

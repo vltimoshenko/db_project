@@ -6,13 +6,13 @@ DROP TABLE IF EXISTS persons;
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE UNLOGGED TABLE persons(
-    about text,
+    nickname CITEXT COLLATE "POSIX" PRIMARY KEY CONSTRAINT persons_nick_right CHECK(nickname ~ '^[A-Za-z0-9_\.]*$'),
+    about TEXT NOT NULL DEFAULT '',
     -- email text NOT NULL UNIQUE,
     -- fullname text NOT NULL,
     -- nickname text NOT NULL UNIQUE
     email CITEXT NOT NULL UNIQUE CONSTRAINT persons_email_right CHECK(email ~ '^.*@[A-Za-z0-9\-_\.]*$'),
-    fullname TEXT NOT NULL DEFAULT '',
-    nickname CITEXT COLLATE "POSIX" PRIMARY KEY CONSTRAINT persons_nick_right CHECK(nickname ~ '^[A-Za-z0-9_\.]*$')
+    fullname TEXT NOT NULL DEFAULT ''
 );
 
 CREATE UNLOGGED TABLE forums(
@@ -20,7 +20,7 @@ CREATE UNLOGGED TABLE forums(
     posts integer DEFAULT 0 NOT NULL,
     slug text PRIMARY KEY,
     threads integer DEFAULT 0 NOT NULL,
-    title text NOT NULL,
+    title text DEFAULT ''NOT NULL,
     person CITEXT REFERENCES persons (nickname) ON DELETE RESTRICT ON UPDATE RESTRICT NOT NULL
     -- person text NOT NULL REFERENCES persons(nickname) ON DELETE CASCADE NOT NULL
 );
