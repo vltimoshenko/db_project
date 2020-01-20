@@ -139,10 +139,6 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		if err.Error() == messages.UserAlreadyExists {
 			code = 409
 		}
-		// if err.Error() == messages.UserNotFound {
-		// 	SetError(w, 404, err.Error())
-		// 	return
-		// }
 		fmt.Println(err.Error())
 	}
 

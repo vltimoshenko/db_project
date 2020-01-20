@@ -9,7 +9,7 @@ type RepositoryInterface interface {
 	CreateThread(NewThread, string) (int, error)
 	CreateUser(NewUser, string) error
 	CreatePosts([]NewPost, int, string) ([]Post, error)
-	CreateVote(Vote, int) error
+	CreateVote(Vote, string) error
 
 	GetThreadBySlug(string) (Thread, error)
 	GetThreadByID(int) (Thread, error)
@@ -29,15 +29,15 @@ type RepositoryInterface interface {
 	// GetPostsTree(int, map[string]interface{}) ([]Post, error)
 	// GetPostsParentTree(int, map[string]interface{}) ([]Post, error)
 
-	GetVote(nickname string, thread int) (Vote, error)
+	GetVoteByThreadID(nickname string, thread int) (Vote, error)
+	GetVoteByThreadSlug(nickname string, threadSlug string) (Vote, error)
 
 	ChangeUser(NewUser, string) error
 	ChangeThread(ThreadUpdate, int) error
 	ChangeThreadRate(int, int) error
-	ChangeVote(Vote, int) error
+	ChangeVote(Vote, string) error
 	ChangePost(PostUpdate, int, bool) error
 
-	LoadSchemaSQL() error
 	ClearDB() error
 	GetStatus() (Status, error)
 }

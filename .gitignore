@@ -3,3 +3,7 @@ main
 plan
 tech-db-forum
 report.html
+run_test.sh
+start_docker.sh
+stop_docker.sh
+db_project

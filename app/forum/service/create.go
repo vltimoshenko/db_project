@@ -42,56 +42,43 @@ func (s Service) CreatePosts(body io.ReadCloser, slugOrId string) ([]Post, error
 }
 
 func (s Service) Vote(vote Vote, slugOrId string) (Thread, error) {
-	threadID, err := strconv.Atoi(slugOrId)
-
 	//should remove
 	if vote.Voice != 1 && vote.Voice != -1 {
 		return Thread{}, fmt.Errorf("Invalid value")
 	}
+	threadID, convErr := strconv.Atoi(slugOrId)
+
+	var err error
+	if convErr != nil {
+		_, err = s.Repository.GetVoteByThreadSlug(vote.Nickname, slugOrId)
+	} else {
+		_, err = s.Repository.GetVoteByThreadID(vote.Nickname, threadID)
+	}
+
+	if err != nil {
+		err = s.Repository.CreateVote(vote, slugOrId)
+		if err != nil {
+			fmt.Printf("Vote: %s\n", err.Error())
+			return Thread{}, fmt.Errorf(messages.UserNotFound)
+		}
+	} else {
+		err = s.Repository.ChangeVote(vote, slugOrId)
+		if err != nil {
+			fmt.Printf("Vote: %s\n", err.Error())
+			return Thread{}, fmt.Errorf(messages.UserNotFound)
+		}
+	}
 
 	var thread Thread
-	if err != nil {
+	if convErr != nil {
 		thread, err = s.Repository.GetThreadBySlug(slugOrId)
 	} else {
 		thread, err = s.Repository.GetThreadByID(threadID)
 	}
+
 	if err != nil {
 		return thread, errors.New(messages.ThreadDoesNotExist)
 	}
-
-	checkVote, err := s.Repository.GetVote(vote.Nickname, thread.ID)
-
-	var dif int
-	if err != nil {
-		err = s.Repository.CreateVote(vote, thread.ID)
-		if err != nil {
-			fmt.Printf("Vote: %s\n", err.Error())
-			return thread, fmt.Errorf(messages.UserNotFound)
-		}
-
-		if vote.Voice == 1 {
-			dif = 1
-		} else {
-			dif = -1
-		}
-	} else {
-		err = s.Repository.ChangeVote(vote, thread.ID)
-		if err != nil {
-			fmt.Printf("Vote: %s\n", err.Error())
-			return thread, fmt.Errorf(messages.UserNotFound)
-		}
-
-		if checkVote.Voice == vote.Voice {
-
-		} else if checkVote.Voice == 1 {
-			dif = -2
-		} else {
-			dif = 2
-		}
-	}
-
-	thread.Votes += dif
-	err = s.Repository.ChangeThreadRate(dif, thread.ID)
 
 	return thread, err
 }
@@ -99,25 +86,25 @@ func (s Service) Vote(vote Vote, slugOrId string) (Thread, error) {
 func (s Service) CreateUser(newUser NewUser, nickname string) ([]User, error) {
 	//see a bottle neck - could be done by one query
 	var users []User
-	userByNickname, err := s.Repository.GetUserByNickname(nickname)
-	if err == nil {
-		users = append(users, userByNickname)
+	err := s.Repository.CreateUser(newUser, nickname)
+
+	if err != nil {
+		fmt.Printf("Service CreateUser: %s\n", err)
+		userByNickname, err := s.Repository.GetUserByNickname(nickname)
+		if err == nil {
+			users = append(users, userByNickname)
+		}
+
+		userByEmail, err := s.Repository.GetUserByEmail(newUser.Email)
+		if err == nil && userByNickname != userByEmail {
+			users = append(users, userByEmail)
+		}
+
+		fmt.Printf("Len users: %d\n", len(users))
+		if len(users) > 0 {
+			return users, fmt.Errorf(messages.UserAlreadyExists)
+		}
 	}
-
-	userByEmail, err := s.Repository.GetUserByEmail(newUser.Email)
-	if err == nil && userByNickname != userByEmail {
-		users = append(users, userByEmail)
-	}
-
-	if len(users) > 0 {
-		return users, fmt.Errorf(messages.UserAlreadyExists)
-	}
-
-	err = s.Repository.CreateUser(newUser, nickname)
-
-	// if err != nil {
-	// 	return User{}, err
-	// }
 
 	user := User{
 		About:    newUser.About,
@@ -127,7 +114,7 @@ func (s Service) CreateUser(newUser NewUser, nickname string) ([]User, error) {
 	}
 
 	users = append(users, user)
-	return users, nil
+	return users, err
 }
 
 func (s Service) CreateForum(body io.ReadCloser) (Forum, error) {

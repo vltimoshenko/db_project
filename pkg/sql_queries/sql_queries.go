@@ -11,31 +11,42 @@ const (
 		VALUES($1,$2,$3,$4);`
 	InsertPost = "INSERT INTO posts(author, message, parent, thread, forum, created) " +
 		"VALUES ($1,$2,$3,$4,$5,$6) RETURNING id;"
-	InsertVote = "INSERT INTO votes (nickname, voice, thread)VALUES($1,$2,$3);"
+	InsertVoteByThreadID   = "INSERT INTO votes (nickname, voice, thread)VALUES($1,$2,$3);"
+	InsertVoteByThreadSlug = "INSERT INTO votes (nickname, voice, thread)VALUES" +
+		"($1,$2,(SELECT id FROM threads WHERE slug = $3));"
 
 	SelectForumBySlug = `SELECT f.posts, f.slug, f.threads, f.title, f.person
 		FROM forums as f WHERE lower(f.slug) = lower($1);`
-	SelectThreadBySlug = `SELECT t.author, t.created, t.forum, t.id, t.message, t.slug, t.title, t.votes ` +
-		`FROM threads as t WHERE lower(t.slug) = lower($1);`
 	SelectThreadsWithParams = `SELECT t.author, t.created, t.forum, t.id, t.message, t.slug, t.title, t.votes ` +
 		`FROM threads as t WHERE lower(t.forum) = lower(:forum) `
+	// SelectThreadBySlug = `SELECT * ` +
+	// 	`FROM threads as t WHERE lower(t.slug) = lower($1);`
+	// SelectThreadsWithParams = `SELECT * ` +
+	// 	`FROM threads as t WHERE lower(t.forum) = lower(:forum) `
 
 	SelectUserByNickname = "SELECT p.about, p.email, p.fullname, p.nickname FROM persons as p WHERE lower(p.nickname) = lower($1)"
 	SelectUserByEmail    = "SELECT p.about, p.email, p.fullname, p.nickname FROM persons as p WHERE lower(p.email) = lower($1)"
 
-	UpdateUserByNickname = "UPDATE persons SET about = $1, email = $2, fullname = $3 WHERE nickname = $4 RETURNING id;"
-	UpdateThreadByID     = "UPDATE threads SET message = $1, title = $2 WHERE id = $3;"
-	UpdateThreadRating   = "UPDATE threads SET votes = votes + $1 WHERE id = $2;"
-	UpdateVote           = "UPDATE votes SET voice = $1 WHERE nickname = $2 AND thread = $3;"
-	UpdatePost           = "UPDATE posts SET message = $1, is_edited = $2 WHERE id = $3;"
+	UpdateUserByNickname   = "UPDATE persons SET about = $1, email = $2, fullname = $3 WHERE nickname = $4;"
+	UpdateThreadByID       = "UPDATE threads SET message = $1, title = $2 WHERE id = $3;"
+	UpdateThreadRating     = "UPDATE threads SET votes = votes + $1 WHERE id = $2;"
+	UpdateVoteByThreadID   = "UPDATE votes SET voice = $1 WHERE nickname = $2 AND thread = $3;"
+	UpdateVoteByThreadSlug = "UPDATE votes SET voice = $1 WHERE nickname = $2 AND thread = (SELECT id FROM threads WHERE slug = $3);"
+	UpdatePost             = "UPDATE posts SET message = $1, is_edited = $2 WHERE id = $3;"
 
-	SelectThreadsBySlug = `SELECT t.author, t.created, t.forum, t.id, t.message, t.slug, t.title, t.votes ` +
+	SelectThreadBySlug = `SELECT t.author, t.created, t.forum, t.id, t.message, t.slug, t.title, t.votes ` +
 		`FROM threads as t WHERE lower(t.slug) = lower($1);`
-	SelectThreadsByID = `SELECT t.author, t.created, t.forum, t.id, t.message, t.slug, t.title, t.votes ` +
+	SelectThreadByID = `SELECT t.author, t.created, t.forum, t.id, t.message, t.slug, t.title, t.votes ` +
 		`FROM threads as t WHERE t.id = $1;`
+	// SelectThreadsBySlug = `SELECT * ` +
+	// 	`FROM threads as t WHERE lower(t.slug) = lower($1);`
+	// SelectThreadsByID = `SELECT * ` +
+	// 	`FROM threads as t WHERE t.id = $1;`
+
 	SelectPostByID = "SELECT p.author, p.created, p.forum, p.id, p.is_edited, p.message, p.parent, p.thread " +
 		"FROM posts as p WHERE p.id = $1;"
-	SelectVote = "SELECT nickname, voice FROM votes WHERE nickname = $1 AND thread = $2;"
+	SelectVoteByThreadID   = "SELECT nickname, voice FROM votes WHERE nickname = $1 AND thread = $2;"
+	SelectVoteByThreadSlug = "SELECT nickname, voice FROM votes WHERE nickname = $1 AND thread = (SELECT id FROM threads WHERE slug = $2);"
 
 	SelectUsersWithParams = "SELECT p.about, p.email, p.fullname, p.nickname " +
 		`FROM persons as p ` +

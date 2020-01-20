@@ -38,7 +38,7 @@ func (h *Handler) GetThread(w http.ResponseWriter, r *http.Request) { //+
 	w.Write(answer)
 }
 
-func (h *Handler) GetForum(w http.ResponseWriter, r *http.Request) { //+
+func (h *Handler) GetForum(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	code := 200
@@ -71,7 +71,7 @@ func (h *Handler) GetForum(w http.ResponseWriter, r *http.Request) { //+
 	w.Write(answer)
 }
 
-func (h *Handler) GetThreads(w http.ResponseWriter, r *http.Request) { //+
+func (h *Handler) GetThreads(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	code := 200
 
@@ -108,7 +108,7 @@ func (h *Handler) GetThreads(w http.ResponseWriter, r *http.Request) { //+
 	w.Write(answer)
 }
 
-func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) { //+
+func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	code := 200
 
@@ -200,7 +200,7 @@ func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 	w.Write(answer)
 }
 
-func (h *Handler) GetPosts(w http.ResponseWriter, r *http.Request) { //+
+func (h *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	code := 200
 

@@ -30,7 +30,6 @@ func NewRouter() (*mux.Router, error) {
 		},
 	}
 
-	err = uS.Repository.LoadSchemaSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -96,4 +95,5 @@ func OpenSqlxViaPgxConnPool(psqURI string) (*sqlx.DB, error) {
 
 	fmt.Println("OpenSqlxViaPgxConnPool: the connection was created")
 	return sqlx.NewDb(nativeDB, "pgx"), nil
+
 }

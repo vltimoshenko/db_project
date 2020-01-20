@@ -17,6 +17,7 @@ require (
 	github.com/go-openapi/validate v0.19.5 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.3
+	github.com/jackc/pgtype v1.1.0
 	github.com/jackc/pgx v3.6.0+incompatible
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/labstack/gommon v0.3.0 // indirect
@@ -26,7 +27,6 @@ require (
 	github.com/mkideal/pkg v0.0.0-20170503154153-3e188c9e7ecc // indirect
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
 	github.com/tinylib/msgp v1.1.1 // indirect
 	go.mongodb.org/mongo-driver v1.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413 // indirect

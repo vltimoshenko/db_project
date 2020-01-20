@@ -9,13 +9,14 @@ import (
 	"github.com/db_project/pkg/messages"
 	. "github.com/db_project/pkg/models"
 	"github.com/db_project/pkg/sql_queries"
+	"github.com/jackc/pgtype"
 	"github.com/jmoiron/sqlx"
 )
 
 func (r *Repository) GetThreadsBySlug(slug string) ([]Thread, error) {
 	threads := []Thread{}
 
-	rows, err := r.DbConn.Queryx(sql_queries.SelectThreadsBySlug, slug)
+	rows, err := r.DbConn.Queryx(sql_queries.SelectThreadBySlug, slug)
 	if err != nil {
 		return threads, err
 	}
@@ -37,7 +38,7 @@ func (r *Repository) GetThreadsBySlug(slug string) ([]Thread, error) {
 func (r *Repository) GetThreadsByID(id int) ([]Thread, error) {
 	threads := []Thread{}
 
-	rows, err := r.DbConn.Queryx(sql_queries.SelectThreadsByID, id)
+	rows, err := r.DbConn.Queryx(sql_queries.SelectThreadByID, id)
 	if err != nil {
 		return threads, err
 	}
@@ -57,34 +58,51 @@ func (r *Repository) GetThreadsByID(id int) ([]Thread, error) {
 }
 
 func (r *Repository) GetThreadByID(id int) (Thread, error) {
-	row := r.DbConn.QueryRowx(sql_queries.SelectThreadsByID, id)
+	row := r.DbConn.QueryRowx(sql_queries.SelectThreadByID, id)
 
-	thread := Thread{}
-	// var timetz time.Time
-	err := row.StructScan(&thread)
+	// thread := Thread{}
+	// // var timetz time.Time
+	// err := row.StructScan(&thread)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return thread, fmt.Errorf(messages.ThreadDoesNotExist)
+	// }
+	// // thread.Created = timetz.Format(time.RFC3339Nano)
+	// c := 'd'
+	// fmt.Println(c)
+	var thread Thread
+	var slug pgtype.Text
+
+	err := row.Scan(&thread.Author, &thread.Created, &thread.Forum, &thread.ID, &thread.Message,
+		&slug, &thread.Title, &thread.Votes)
+	thread.Slug = slug.String
 	if err != nil {
 		fmt.Println(err)
 		return thread, fmt.Errorf(messages.ThreadDoesNotExist)
 	}
-	// thread.Created = timetz.Format(time.RFC3339Nano)
-	c := 'd'
-	fmt.Println(c)
-	return thread, nil
+	return thread, err
 }
 
-func (r *Repository) GetThreadBySlug(slug string) (Thread, error) {
-	row := r.DbConn.QueryRowx(sql_queries.SelectThreadBySlug, slug)
+func (r *Repository) GetThreadBySlug(threadSlug string) (Thread, error) {
+	row := r.DbConn.QueryRowx(sql_queries.SelectThreadBySlug, threadSlug)
 
+	// var thread Thread
+	// err := row.StructScan(&thread)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return thread, fmt.Errorf(messages.ThreadDoesNotExist)
+	// }
 	var thread Thread
-	// var timetz time.Time
-	err := row.StructScan(&thread)
+	var slug pgtype.Text
+
+	err := row.Scan(&thread.Author, &thread.Created, &thread.Forum, &thread.ID, &thread.Message,
+		&slug, &thread.Title, &thread.Votes)
+	thread.Slug = slug.String
 	if err != nil {
 		fmt.Println(err)
 		return thread, fmt.Errorf(messages.ThreadDoesNotExist)
 	}
-	// thread.Created = timetz.Format(time.RFC3339Nano)
-
-	return thread, nil
+	return thread, err
 }
 
 func (r *Repository) GetPostByID(ID int) (Post, error) {
@@ -199,8 +217,8 @@ func (r *Repository) GetForumBySlug(slug string) (Forum, error) {
 	return forum, nil
 }
 
-func (r *Repository) GetVote(nickname string, thread int) (Vote, error) {
-	row := r.DbConn.QueryRowx(sql_queries.SelectVote, nickname, thread)
+func (r *Repository) GetVoteByThreadID(nickname string, thread int) (Vote, error) {
+	row := r.DbConn.QueryRowx(sql_queries.SelectVoteByThreadID, nickname, thread)
 
 	var vote Vote
 	err := row.StructScan(&vote)
@@ -212,165 +230,18 @@ func (r *Repository) GetVote(nickname string, thread int) (Vote, error) {
 	return vote, nil
 }
 
-// func (r *Repository) GetPosts(int, map[string]interface{}) ([]Post, error) {
-// 	queryStr := paramsGetPosts(params)
-// 	users := []User{}
+func (r *Repository) GetVoteByThreadSlug(nickname string, slug string) (Vote, error) {
+	row := r.DbConn.QueryRowx(sql_queries.SelectVoteByThreadSlug, nickname, slug)
 
-// 	query, args, err := sqlx.Named(queryStr, params)
-// 	if err != nil {
-// 		log.Print(err)
-// 		return users, err
-// 	}
+	var vote Vote
+	err := row.StructScan(&vote)
+	if err != nil {
+		fmt.Println(err)
+		return vote, err //fmt.Errorf()
+	}
 
-// 	query, args, err = sqlx.In(query, args...)
-// 	if err != nil {
-// 		log.Print(err)
-// 		return users, err
-// 	}
-
-// 	query = r.DbConn.Rebind(query)
-
-// 	rows, err := r.DbConn.Queryx(query, args...)
-
-// 	if err != nil {
-// 		log.Print(err)
-// 		return users, err
-// 	}
-// 	defer rows.Close()
-
-// 	for rows.Next() {
-// 		var user User
-
-// 		err = rows.StructScan(&user)
-// 		if err != nil {
-// 			log.Printf("GetVacancies: %s\n", err)
-// 			return users, err
-// 		}
-
-// 		users = append(users, user)
-// 	}
-// 	return users, nil
-// }
-
-// func (r *Repository) GetPostsFlat(threadID int, params map[string]interface{}) ([]Post, error) {
-// 	queryStr := paramsGetPostsFlat(params)
-// 	posts := []Post{}
-
-// 	query, args, err := sqlx.Named(queryStr, params)
-// 	if err != nil {
-// 		log.Print(err)
-// 		return posts, err
-// 	}
-
-// 	query, args, err = sqlx.In(query, args...)
-// 	if err != nil {
-// 		log.Print(err)
-// 		return posts, err
-// 	}
-
-// 	query = r.DbConn.Rebind(query)
-
-// 	rows, err := r.DbConn.Queryx(query, args...)
-
-// 	if err != nil {
-// 		log.Print(err)
-// 		return posts, err
-// 	}
-// 	defer rows.Close()
-
-// 	for rows.Next() {
-// 		var post Post
-
-// 		err = rows.StructScan(&post)
-// 		if err != nil {
-// 			log.Printf("GetPosts: %s\n", err)
-// 			return posts, err
-// 		}
-
-// 		posts = append(posts, post)
-// 	}
-// 	return posts, nil
-// }
-
-// func (r *Repository) GetPostsTree(threadID int, params map[string]interface{}) ([]Post, error) {
-// 	queryStr := paramsGetPostsFlat(params)
-// 	posts := []Post{}
-
-// 	query, args, err := sqlx.Named(queryStr, params)
-// 	if err != nil {
-// 		log.Print(err)
-// 		return posts, err
-// 	}
-
-// 	query, args, err = sqlx.In(query, args...)
-// 	if err != nil {
-// 		log.Print(err)
-// 		return posts, err
-// 	}
-
-// 	query = r.DbConn.Rebind(query)
-
-// 	rows, err := r.DbConn.Queryx(query, args...)
-
-// 	if err != nil {
-// 		log.Print(err)
-// 		return posts, err
-// 	}
-// 	defer rows.Close()
-
-// 	for rows.Next() {
-// 		var post Post
-
-// 		err = rows.StructScan(&post)
-// 		if err != nil {
-// 			log.Printf("GetPosts: %s\n", err)
-// 			return posts, err
-// 		}
-
-// 		posts = append(posts, post)
-// 	}
-// 	return posts, nil
-// }
-
-// func (r *Repository) GetPostsParentTree(threadID int, params map[string]interface{}) ([]Post, error) {
-// 	queryStr := paramsGetPostsFlat(params)
-// 	posts := []Post{}
-
-// 	query, args, err := sqlx.Named(queryStr, params)
-// 	if err != nil {
-// 		log.Print(err)
-// 		return posts, err
-// 	}
-
-// 	query, args, err = sqlx.In(query, args...)
-// 	if err != nil {
-// 		log.Print(err)
-// 		return posts, err
-// 	}
-
-// 	query = r.DbConn.Rebind(query)
-
-// 	rows, err := r.DbConn.Queryx(query, args...)
-
-// 	if err != nil {
-// 		log.Print(err)
-// 		return posts, err
-// 	}
-// 	defer rows.Close()
-
-// 	for rows.Next() {
-// 		var post Post
-
-// 		err = rows.StructScan(&post)
-// 		if err != nil {
-// 			log.Printf("GetPosts: %s\n", err)
-// 			return posts, err
-// 		}
-
-// 		posts = append(posts, post)
-// 	}
-// 	return posts, nil
-// }
+	return vote, nil
+}
 
 func (r *Repository) GetPosts(threadID int, limit, since, sort, desc string) (Posts []Post, Err error) {
 	posts := []Post{}
@@ -585,7 +456,7 @@ func (r *Repository) GetUserByNickname(nickname string) (User, error) {
 	var user User
 	err := row.StructScan(&user)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Repository GetUserByNickname: %s", err)
 		return user, err
 	}
 
@@ -599,7 +470,7 @@ func (r *Repository) GetUserByEmail(email string) (User, error) {
 	var user User
 	err := row.StructScan(&user)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Repository GetUserByNickname: %s", err)
 		return user, err
 	}
 

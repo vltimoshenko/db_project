@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/db_project/pkg/messages"
@@ -92,9 +93,19 @@ func (r *Repository) createPost(tx *sql.Tx, post NewPost, threadID int, forum st
 	return lastID, nil
 }
 
-func (r *Repository) CreateVote(vote Vote, threadID int) error {
-	_, err := r.DbConn.Exec(sql_queries.InsertVote, vote.Nickname, vote.Voice,
-		threadID)
+func (r *Repository) CreateVote(vote Vote, slugOrID string) error {
+	threadID, err := strconv.Atoi(slugOrID)
+	if err != nil {
+		_, err = r.DbConn.Exec(sql_queries.InsertVoteByThreadSlug, vote.Nickname, vote.Voice,
+			slugOrID)
+	} else {
+		_, err = r.DbConn.Exec(sql_queries.InsertVoteByThreadID, vote.Nickname, vote.Voice,
+			threadID)
+	}
+	if err != nil {
+		fmt.Printf("Rep CreateVote: %s\n", err.Error())
+	}
+
 	return err
 }
 
@@ -131,16 +142,10 @@ func (r *Repository) CreateThread(thread NewThread, forum string) (int, error) {
 }
 
 func (r *Repository) CreateUser(user NewUser, nickname string) error {
-	// var id int
-	_, _ = r.DbConn.Exec(sql_queries.InsertUser, user.About,
+	_, err := r.DbConn.Exec(sql_queries.InsertUser, user.About,
 		user.Email, user.Fullname, nickname)
-
-	// fmt.Println(row)
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// 	return fmt.Errorf(messages.UserAlreadyExists)
-	// }
-
-	// fmt.Println(id)
-	return nil
+	if err != nil {
+		fmt.Printf("Rep CreateUser: %s\n", err)
+	}
+	return err
 }
