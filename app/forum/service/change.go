@@ -89,7 +89,7 @@ func (s Service) ChangeUser(newUser NewUser, nickname string) (User, error) {
 	return user, nil
 }
 
-func (s Service) ChangePost(updatePost PostUpdate, postID int) (Post, error) {
+func (s Service) ChangePost(updatePost PostUpdate, postID int64) (Post, error) {
 	post, err := s.Repository.GetPostByID(postID)
 	if err != nil {
 		fmt.Println(err.Error())

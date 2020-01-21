@@ -17,9 +17,9 @@ func (h *Handler) CreatePosts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	code := 201
 
-	slugOrId, ok := mux.Vars(r)["slug_or_id"]
-	if !ok {
-	}
+	slugOrId, _ := mux.Vars(r)["slug_or_id"]
+	// if !ok {
+	// }
 
 	forum, err := h.Service.CreatePosts(r.Body, slugOrId)
 
@@ -76,19 +76,19 @@ func (h *Handler) CreateThread(w http.ResponseWriter, r *http.Request) { //+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	code := 201
 
-	forumSlug, ok := mux.Vars(r)["slug"]
-	if !ok {
+	forumSlug, _ := mux.Vars(r)["slug"]
+	// if !ok {
 
-	}
+	// }
 
-	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-	}
+	bytes, _ := ioutil.ReadAll(r.Body)
+	// if err != nil {
+	// }
 
 	var thread NewThread
-	err = json.Unmarshal(bytes, &thread)
-	if err != nil {
-	}
+	err := json.Unmarshal(bytes, &thread)
+	// if err != nil {
+	// }
 
 	forum, err := h.Service.CreateThread(thread, forumSlug)
 
@@ -118,21 +118,21 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	code := 201
 
-	nickname, ok := mux.Vars(r)["nickname"]
-	if !ok {
-		//
-	}
+	nickname, _ := mux.Vars(r)["nickname"]
+	// if !ok {
+	// 	//
+	// }
 
-	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		//
-	}
+	bytes, _ := ioutil.ReadAll(r.Body)
+	// if err != nil {
+	// 	//
+	// }
 
 	var newUser NewUser
-	err = json.Unmarshal(bytes, &newUser)
-	if err != nil {
+	_ = json.Unmarshal(bytes, &newUser)
+	// if err != nil {
 
-	}
+	// }
 
 	users, err := h.Service.CreateUser(newUser, nickname)
 	if err != nil {
@@ -158,20 +158,20 @@ func (h *Handler) Vote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	code := 200
 
-	slugOrId, ok := mux.Vars(r)["slug_or_id"]
-	if !ok {
-	}
+	slugOrId, _ := mux.Vars(r)["slug_or_id"]
+	// if !ok {
+	// }
 
-	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		//
-	}
+	bytes, _ := ioutil.ReadAll(r.Body)
+	// if err != nil {
+	// 	//
+	// }
 
 	var vote Vote
-	err = json.Unmarshal(bytes, &vote)
-	if err != nil {
+	_ = json.Unmarshal(bytes, &vote)
+	// if err != nil {
 
-	}
+	// }
 
 	thread, err := h.Service.Vote(vote, slugOrId)
 

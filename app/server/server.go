@@ -13,6 +13,7 @@ import (
 	"github.com/db_project/app/forum/repository"
 	"github.com/db_project/app/forum/service"
 	"github.com/db_project/app/server/delivery"
+
 	"github.com/db_project/pkg/config"
 )
 
@@ -37,7 +38,9 @@ func NewRouter() (*mux.Router, error) {
 	h := delivery.Handler{
 		Service: uS,
 	}
+
 	router = router.PathPrefix("/api").Subrouter()
+	// router.Use(middleware.AccessLogMiddleware)
 
 	router.HandleFunc("/forum/create", h.CreateForum).Methods(http.MethodPost)
 	router.HandleFunc("/forum/{slug}/create", h.CreateThread).Methods(http.MethodPost)

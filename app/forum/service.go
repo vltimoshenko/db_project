@@ -14,15 +14,16 @@ type ServiceInterface interface {
 	GetUser(string) (User, error)
 	GetForum(string) (Forum, error)
 	GetThread(string) (Thread, error)
-	GetPost(int, []string) (map[string]interface{}, error)
+	GetPost(int64, []string) (map[string]interface{}, error)
 
 	GetThreads(map[string]interface{}) ([]Thread, error)
 	GetUsers(map[string]interface{}) ([]User, error)
-	GetPosts(string, map[string]interface{}) ([]Post, error)
+	// GetPosts(string, map[string]interface{}) ([]Post, error)
+	GetPosts(slugOrID string, limit int64, since string, sort string, desc bool) ([]Post, error)
 
 	ChangeUser(NewUser, string) (User, error)
 	ChangeThread(ThreadUpdate, string) (Thread, error)
-	ChangePost(PostUpdate, int) (Post, error)
+	ChangePost(PostUpdate, int64) (Post, error)
 
 	Vote(Vote, string) (Thread, error)
 	ClearDB() error

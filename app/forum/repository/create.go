@@ -15,19 +15,14 @@ func (r *Repository) CreatePosts(posts []NewPost, threadID int, forum string) ([
 	tx, _ := r.DbConn.Begin()
 
 	created := time.Now().Format(time.RFC3339)
-	// created := time.Now().Format("1970-01-01 03:00:00+03")
 	returnPosts := []Post{}
 
-	for _, post := range posts {
-		// if post.Parent != 0 {
-		// 	// _, err := r.GetPostByIDThreadID(post.Parent, threadID)
-		// 	_, err := r.GetPostByID(post.Parent)
+	_, err := r.GetThreadByID(threadID)
+	if err != nil {
+		return []Post{}, fmt.Errorf(messages.ThreadDoesNotExist)
+	}
 
-		// 	if err != nil {
-		// 		tx.Rollback()
-		// 		return []Post{}, fmt.Errorf(messages.ParentPostDoesNotExist)
-		// 	}
-		// }
+	for _, post := range posts {
 		lastID, err := r.createPost(tx, post, threadID, forum, created)
 		if err != nil {
 			tx.Rollback()
@@ -51,33 +46,31 @@ func (r *Repository) CreatePosts(posts []NewPost, threadID int, forum string) ([
 	return returnPosts, nil
 }
 
-func (r *Repository) createPost(tx *sql.Tx, post NewPost, threadID int, forum string, created string) (int, error) {
-	var lastID int
+func (r *Repository) createPost(tx *sql.Tx, post NewPost, threadID int, forum string, created string) (int64, error) {
+	var lastID int64
+	var err error
+	if post.Parent == 0 {
+		stmt, _ := tx.Prepare(sql_queries.InsertPostWithoutParent)
+		defer stmt.Close()
 
-	if post.Parent != 0 {
-		parentPost, err := r.GetPostByID(post.Parent)
+		err = stmt.QueryRow(post.Author, post.Message, threadID, forum, created).Scan(&lastID)
+	} else {
+		stmt, _ := tx.Prepare(sql_queries.InsertPost)
+		defer stmt.Close()
 
+		err = stmt.QueryRow(post.Author, post.Message, post.Parent, threadID, forum, created).Scan(&lastID)
+	}
+
+	if err != nil {
+		fmt.Printf("createPost %s", err.Error())
+		_, err = r.GetUserByNickname(post.Author)
 		if err != nil {
-			fmt.Printf("createPost %s", err.Error())
-			return 0, fmt.Errorf(messages.ParentPostDoesNotExist) //
-		} else if parentPost.Thread != threadID {
-			return 0, fmt.Errorf(messages.ParentInAnotherThread) //
+			return lastID, fmt.Errorf(messages.UserNotFound)
+		} else {
+			return lastID, fmt.Errorf(messages.ParentInAnotherThread)
 		}
 	}
 
-	stmt, err := tx.Prepare(sql_queries.InsertPost)
-	if err != nil {
-		fmt.Printf("createPost %s", err.Error())
-		return lastID, fmt.Errorf(messages.UserNotFound)
-	}
-
-	defer stmt.Close()
-
-	err = stmt.QueryRow(post.Author, post.Message, post.Parent, threadID, forum, created).Scan(&lastID)
-	if err != nil {
-		fmt.Printf("createPost %s", err.Error())
-		return lastID, fmt.Errorf(messages.UserNotFound)
-	}
 	return lastID, nil
 }
 
@@ -90,18 +83,18 @@ func (r *Repository) CreateVote(vote Vote, slugOrID string) error {
 		_, err = r.DbConn.Exec(sql_queries.InsertVoteByThreadID, vote.Nickname, vote.Voice,
 			threadID)
 	}
-	if err != nil {
-		fmt.Printf("Rep CreateVote: %s\n", err.Error())
-	}
+	// if err != nil {
+	// 	fmt.Printf("Rep CreateVote: %s\n", err.Error())
+	// }
 
 	return err
 }
 
 func (r *Repository) CreateForum(forum NewForum) error {
 	_, err := r.DbConn.Exec(sql_queries.InsertForum, forum.Slug, forum.Title, forum.User)
-	if err != nil {
-		fmt.Printf("CreateForum error: %s", err.Error())
-	}
+	// if err != nil {
+	// 	fmt.Printf("CreateForum error: %s", err.Error())
+	// }
 	return err
 }
 
@@ -132,8 +125,8 @@ func (r *Repository) CreateThread(thread NewThread, forum string) (int, error) {
 func (r *Repository) CreateUser(user NewUser, nickname string) error {
 	_, err := r.DbConn.Exec(sql_queries.InsertUser, user.About,
 		user.Email, user.Fullname, nickname)
-	if err != nil {
-		fmt.Printf("Rep CreateUser: %s\n", err)
-	}
+	// if err != nil {
+	// 	fmt.Printf("Rep CreateUser: %s\n", err)
+	// }
 	return err
 }

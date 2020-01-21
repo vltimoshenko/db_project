@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-
 	. "github.com/db_project/pkg/models"
 	"github.com/db_project/pkg/sql_queries"
 	"github.com/jmoiron/sqlx"
@@ -29,10 +27,9 @@ func (r *Repository) GetStatus() (Status, error) {
 	row := r.DbConn.QueryRowx(sql_queries.SelectDBStatus)
 
 	var status Status
-	err := row.StructScan(&status)
-	if err != nil {
-		fmt.Println(err)
-		// return post, fmt.Errorf(messages.PostDoesNotExist)
-	}
+	_ = row.StructScan(&status)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 	return status, nil
 }

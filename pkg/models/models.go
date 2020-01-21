@@ -15,11 +15,9 @@ type Forum struct {
 }
 
 type NewPost struct {
-	Author string `json:"author"`
-	// Forum   string `json:"forum"`
+	Author  string `json:"author"`
 	Message string `json:"message"`
-	Parent  int    `json:"parent"`
-	// Thread  int    `json:"thread"`
+	Parent  int64  `json:"parent"`
 }
 
 type PostUpdate struct {
@@ -30,33 +28,12 @@ type Post struct {
 	Author   string `json:"author"     db:"author"`
 	Created  string `json:"created"    db:"created"`
 	Forum    string `json:"forum"      db:"forum"`
-	ID       int    `json:"id"         db:"id"`
+	ID       int64  `json:"id"         db:"id"`
 	IsEdited bool   `json:"isEdited"  db:"is_edited"`
 	Message  string `json:"message"    db:"message"`
-	Parent   int    `json:"parent"     db:"parent"`
+	Parent   int64  `json:"parent"     db:"parent"`
 	Thread   int    `json:"thread"     db:"thread"`
 }
-
-// type EditedPost struct {
-// 	Author  string `json:"author"`
-// 	Created string `json:"created"`
-// 	Forum   string `json:"forum"`
-// 	ID      int    `json:"id"`
-// 	Message string `json:"message"`
-// 	Parent  int    `json:"parent"`
-// 	Thread  int    `json:"thread"`
-// }
-
-// type PostDetails struct {
-// 	Forum  interface{} `json:"forum,omitempty"`
-// 	Thread interface{} `json:"thread,omitempty"`
-// 	User   interface{} `json:"author,omitempty"`
-// 	Post   interface{} `json:"post"`
-// }
-
-// type NewPosts []*NewPost
-
-// type Posts []*Post
 
 type NewThread struct {
 	Author  string `json:"author"`
@@ -81,8 +58,6 @@ type Thread struct {
 	Title   string `json:"title"`
 	Votes   int    `json:"votes"`
 }
-
-// type Threads []*Thread
 
 type NewUser struct {
 	About    string `json:"about"    db:"about"`
@@ -110,11 +85,3 @@ type Vote struct {
 	Nickname string `json:"nickname" db:"nickname"`
 	Voice    int    `json:"voice"    db:"voice"`
 }
-
-// type Error struct {
-// 	Message string `json:"message"`
-// }
-
-// type Body struct {
-// 	Body interface{}
-// }

@@ -8,3 +8,4 @@ start_docker.sh
 stop_docker.sh
 db_project
 tech-db-forum.dat.gz
+tech-db-forum.best.txt

@@ -8,9 +8,6 @@ CREATE EXTENSION IF NOT EXISTS citext;
 CREATE UNLOGGED TABLE persons(
     nickname CITEXT COLLATE "POSIX" PRIMARY KEY CONSTRAINT persons_nick_right CHECK(nickname ~ '^[A-Za-z0-9_\.]*$'),
     about TEXT NOT NULL DEFAULT '',
-    -- email text NOT NULL UNIQUE,
-    -- fullname text NOT NULL,
-    -- nickname text NOT NULL UNIQUE
     email CITEXT NOT NULL UNIQUE CONSTRAINT persons_email_right CHECK(email ~ '^.*@[A-Za-z0-9\-_\.]*$'),
     fullname TEXT NOT NULL DEFAULT ''
 );
@@ -39,21 +36,40 @@ CREATE UNLOGGED TABLE threads(
     votes integer DEFAULT 0 NOT NULL
 );
 
-CREATE UNLOGGED TABLE posts(
-    id SERIAL PRIMARY KEY, --maybe need to switch serial to int
-    -- author text NOT NULL REFERENCES persons(nickname) ON DELETE CASCADE,
-    author CITEXT REFERENCES persons (nickname) NOT NULL,
+CREATE OR REPLACE FUNCTION get_thread_by_post(post_ BIGINT) RETURNS INTEGER AS 
+$BODY$
+    BEGIN
+        RETURN (SELECT thread FROM posts WHERE id=post_);
+    END;
+$BODY$ 
+LANGUAGE plpgsql;
 
-    -- author text NOT NULL,
+CREATE UNLOGGED TABLE posts(
+    id SERIAL PRIMARY KEY,
+    author CITEXT REFERENCES persons (nickname) NOT NULL,
     created timestamp with time zone DEFAULT '1970-01-01 03:00:00+03'::timestamp with time zone NOT NULL,
-    forum text REFERENCES forums(slug) ON DELETE CASCADE NOT NULL,
+    -- forum text REFERENCES forums(slug) ON DELETE CASCADE NOT NULL,
+    forum CITEXT,
     is_edited boolean DEFAULT false NOT NULL,
     message text NOT NULL,
-    parent integer DEFAULT 0 NOT NULL, --reference on parent id
-    thread integer REFERENCES threads(id) ON DELETE CASCADE NOT NULL
-    -- thread integer NOT NULL
-
+    parent BIGINT REFERENCES posts(id) ON DELETE CASCADE ON UPDATE RESTRICT
+        CONSTRAINT par CHECK (get_thread_by_post(parent)=thread),
+    -- thread INTEGER REFERENCES threads(id) ON DELETE CASCADE NOT NULL,
+    thread integer,
+    path INTEGER[] not null
 );
+
+CREATE OR REPLACE FUNCTION change_path() RETURNS TRIGGER AS
+$BODY$
+    BEGIN
+        NEW.path = (SELECT path FROM posts WHERE id = NEW.parent) || NEW.id;
+        RETURN NEW;
+    END;
+$BODY$ 
+LANGUAGE plpgsql;
+
+CREATE TRIGGER change_path BEFORE INSERT ON posts
+    FOR EACH ROW EXECUTE PROCEDURE change_path();
 
 CREATE UNLOGGED TABLE votes(
     -- nickname text NOT NULL REFERENCES persons(nickname) ON DELETE CASCADE,
@@ -116,22 +132,13 @@ $BODY$
             RAISE EXCEPTION 'Invalid call update_thread_votes_counter()';
         end if;
     END
-$BODY$ LANGUAGE plpgsql;
+$BODY$
+LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS update_thread_vote ON votes;
 
 CREATE TRIGGER update_thread_vote AFTER INSERT OR UPDATE ON votes
     FOR EACH ROW EXECUTE PROCEDURE update_thread_votes_counter();
-
-
--- CREATE INDEX IF NOT EXISTS idx_persons_email ON persons(email);
--- CREATE INDEX  IF NOT EXISTS idx_threads_slug ON threads(lower(slug));
--- -- create index IF NOT EXISTS thread_forum ON threads(forum);
--- CREATE INDEX IF NOT EXISTS idx_posts_parent ON posts(parent);
--- CREATE INDEX IF NOT EXISTS idx_posts_author ON posts(lower(author));
--- CREATE INDEX IF NOT EXISTS idx_posts_thread ON posts(thread);
--- CREATE INDEX IF NOT EXISTS idx_thread_author ON threads(lower(author));
-
 
 ----------------------------------------------------------------
 CREATE UNIQUE INDEX idx_persons_nickname ON persons(lower(nickname));
@@ -141,6 +148,8 @@ CREATE INDEX IF NOT EXISTS idx_posts_thread ON posts(thread);
 CREATE INDEX IF NOT EXISTS idx_posts_id_thread ON posts(id, thread);
 CREATE INDEX IF NOT EXISTS idx_posts_forum_author ON posts(forum, author);
 CREATE INDEX IF NOT EXISTS idx_posts_author ON posts(lower(author));
+CREATE INDEX IF NOT EXISTS idx_post_path_first ON posts((path[1]));
+CREATE INDEX IF NOT EXISTS idx_post_parent_thread_path_id ON posts(thread, (path[1]), id) WHERE parent IS NUll;
 
 CREATE UNIQUE INDEX idx_threads_slug ON threads(lower(slug));
 CREATE INDEX IF NOT EXISTS idx_threads_author ON threads(lower(author));
@@ -148,3 +157,9 @@ CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(forum);
 CREATE INDEX IF NOT EXISTS idx_threads_forum_created ON threads(lower(forum), created);
 
 CREATE INDEX IF NOT EXISTS idx_votes_coverage ON votes(thread, lower(nickname), voice);
+
+
+
+
+-- create unique index forum_users_idx ON UsersInForum(forum, nickname);
+-- cluster UsersInForum USING forum_users_idx;

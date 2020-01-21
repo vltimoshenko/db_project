@@ -14,15 +14,15 @@ import (
 
 func (s Service) CreatePosts(body io.ReadCloser, slugOrId string) ([]Post, error) {
 	bytes, err := ioutil.ReadAll(body)
-	if err != nil {
-		//return uuid.UUID{}, errors.New(BadRequestMsg)
-	}
+	// if err != nil {
+	// 	//return uuid.UUID{}, errors.New(BadRequestMsg)
+	// }
 
 	var posts []NewPost
 	err = json.Unmarshal(bytes, &posts)
-	if err != nil {
-		//return uuid.UUID{}, errors.New(InvalidJSONMsg)
-	}
+	// if err != nil {
+	// 	//return uuid.UUID{}, errors.New(InvalidJSONMsg)
+	// }
 
 	threadID, err := strconv.Atoi(slugOrId)
 
@@ -43,9 +43,9 @@ func (s Service) CreatePosts(body io.ReadCloser, slugOrId string) ([]Post, error
 
 func (s Service) Vote(vote Vote, slugOrId string) (Thread, error) {
 	//should remove
-	if vote.Voice != 1 && vote.Voice != -1 {
-		return Thread{}, fmt.Errorf("Invalid value")
-	}
+	// if vote.Voice != 1 && vote.Voice != -1 {
+	// 	return Thread{}, fmt.Errorf("Invalid value")
+	// }
 	threadID, convErr := strconv.Atoi(slugOrId)
 
 	var err error
@@ -118,18 +118,18 @@ func (s Service) CreateUser(newUser NewUser, nickname string) ([]User, error) {
 }
 
 func (s Service) CreateForum(body io.ReadCloser) (Forum, error) {
-	bytes, err := ioutil.ReadAll(body)
-	if err != nil {
-		//return uuid.UUID{}, errors.New(BadRequestMsg)
-	}
+	bytes, _ := ioutil.ReadAll(body)
+	// if err != nil {
+	// 	//return uuid.UUID{}, errors.New(BadRequestMsg)
+	// }
 
 	var forum NewForum
-	err = json.Unmarshal(bytes, &forum)
-	if err != nil {
-		//return uuid.UUID{}, errors.New(InvalidJSONMsg)
-	}
+	err := json.Unmarshal(bytes, &forum)
+	// if err != nil {
+	// 	//return uuid.UUID{}, errors.New(InvalidJSONMsg)
+	// }
 
-	//could remove to creation moment
+	//could remove to creation moment or after get
 	user, err := s.Repository.GetUserByNickname(forum.User)
 	if err != nil {
 		return Forum{}, fmt.Errorf(messages.UserNotFound)

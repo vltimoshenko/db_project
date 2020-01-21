@@ -55,7 +55,7 @@ func (s Service) GetUsers(params map[string]interface{}) ([]User, error) {
 	return users, nil
 }
 
-func (s Service) GetPost(postID int, params []string) (map[string]interface{}, error) {
+func (s Service) GetPost(postID int64, params []string) (map[string]interface{}, error) {
 	postInfo := make(map[string]interface{})
 	post, err := s.Repository.GetPostByID(postID)
 	if err != nil {
@@ -66,11 +66,11 @@ func (s Service) GetPost(postID int, params []string) (map[string]interface{}, e
 	for _, obj := range params {
 		switch obj {
 		case "user":
-			postInfo["author"], err = s.Repository.GetUserByNickname(post.Author)
+			postInfo["author"], _ = s.Repository.GetUserByNickname(post.Author)
 		case "forum":
-			postInfo["forum"], err = s.Repository.GetForumBySlug(post.Forum)
+			postInfo["forum"], _ = s.Repository.GetForumBySlug(post.Forum)
 		case "thread":
-			postInfo["thread"], err = s.Repository.GetThreadByID(post.Thread)
+			postInfo["thread"], _ = s.Repository.GetThreadByID(post.Thread)
 			//errors could be eliminated
 		}
 	}
@@ -78,7 +78,7 @@ func (s Service) GetPost(postID int, params []string) (map[string]interface{}, e
 	return postInfo, err
 }
 
-func (s Service) GetPosts(slugOrID string, params map[string]interface{}) ([]Post, error) {
+func (s Service) GetPosts(slugOrID string, limit int64, since string, sort string, desc bool) ([]Post, error) {
 	threadID, err := strconv.Atoi(slugOrID)
 
 	var thread Thread
@@ -91,43 +91,6 @@ func (s Service) GetPosts(slugOrID string, params map[string]interface{}) ([]Pos
 	if err != nil {
 		fmt.Println(err)
 		return []Post{}, fmt.Errorf(messages.ThreadDoesNotExist)
-	}
-
-	// var posts []Post
-	// if params["sort"] == "tree" {
-	// 	posts, err = s.Repository.GetPostsTree(thread.ID, params)
-	// } else if params["sort"] == "parent_tree" {
-	// 	posts, err = s.Repository.GetPostsParentTree(thread.ID, params)
-	// } else {
-	// 	posts, err = s.Repository.GetPostsFlat(thread.ID, params)
-	// }
-	var limit, since, sort, desc string
-	if params["limit"] != nil {
-		limit = params["limit"].(string)
-	} else {
-		limit = "100"
-	}
-
-	if params["sort"] != nil {
-		sort = params["sort"].(string)
-	} else {
-		sort = "flat"
-	}
-
-	if params["desc"] != nil {
-		desc = params["desc"].(string)
-	} else {
-		desc = "false"
-	}
-
-	if params["since"] != nil {
-		since = params["since"].(string)
-	} else {
-		if desc == "false" {
-			since = "0"
-		} else {
-			since = "999999999"
-		}
 	}
 
 	posts, err := s.Repository.GetPosts(thread.ID, limit, since, sort, desc)

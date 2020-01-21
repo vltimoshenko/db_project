@@ -17,21 +17,21 @@ func (h *Handler) ChangeThread(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	code := 200
 
-	slugOrID, ok := mux.Vars(r)["slug_or_id"]
-	if !ok {
-		//
-	}
+	slugOrID, _ := mux.Vars(r)["slug_or_id"]
+	// if !ok {
+	// 	//
+	// }
 
-	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		//
-	}
+	bytes, _ := ioutil.ReadAll(r.Body)
+	// if err != nil {
+	// 	//
+	// }
 
 	var threadUpdate ThreadUpdate
-	err = json.Unmarshal(bytes, &threadUpdate)
-	if err != nil {
+	err := json.Unmarshal(bytes, &threadUpdate)
+	// if err != nil {
 
-	}
+	// }
 
 	thread, err := h.Service.ChangeThread(threadUpdate, slugOrID)
 
@@ -54,21 +54,21 @@ func (h *Handler) ChangeUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	code := 200
 
-	nickname, ok := mux.Vars(r)["nickname"]
-	if !ok {
-		//
-	}
+	nickname, _ := mux.Vars(r)["nickname"]
+	// if !ok {
+	// 	//
+	// }
 
-	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		//
-	}
+	bytes, _ := ioutil.ReadAll(r.Body)
+	// if err != nil {
+	// 	//
+	// }
 
 	var newUser NewUser
-	err = json.Unmarshal(bytes, &newUser)
-	if err != nil {
+	_ = json.Unmarshal(bytes, &newUser)
+	// if err != nil {
 
-	}
+	// }
 
 	user, err := h.Service.ChangeUser(newUser, nickname)
 	if err != nil {
@@ -93,25 +93,25 @@ func (h *Handler) ChangePost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	code := 200
 
-	idStr, ok := mux.Vars(r)["id"]
-	if !ok {
-		//
-	}
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		//
-	}
+	idStr, _ := mux.Vars(r)["id"]
+	// if !ok {
+	// 	//
+	// }
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	// if err != nil {
+	// 	//
+	// }
 
 	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		//
-	}
+	// if err != nil {
+	// 	//
+	// }
 
 	var postUpdate PostUpdate
 	err = json.Unmarshal(bytes, &postUpdate)
-	if err != nil {
+	// if err != nil {
 
-	}
+	// }
 
 	post, err := h.Service.ChangePost(postUpdate, id)
 

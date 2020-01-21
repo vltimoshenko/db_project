@@ -24,10 +24,10 @@ func (r *Repository) ChangeThread(threadUpdate ThreadUpdate, threadID int) error
 	return nil
 }
 
-func (r *Repository) ChangeThreadRate(dif int, threadID int) error {
-	_, err := r.DbConn.Exec(sql_queries.UpdateThreadRating, dif, threadID)
-	return err
-}
+// func (r *Repository) ChangeThreadRate(dif int, threadID int) error {
+// 	_, err := r.DbConn.Exec(sql_queries.UpdateThreadRating, dif, threadID)
+// 	return err
+// }
 
 func (r *Repository) ChangeVote(updateVote Vote, slugOrID string) error {
 	threadID, err := strconv.Atoi(slugOrID)
@@ -47,23 +47,19 @@ func (r *Repository) ChangeUser(user NewUser, nickname string) error {
 		user.Email, user.Fullname, nickname) //should read id?
 
 	if err != nil {
-		fmt.Println(err.Error())
+		// fmt.Println(err.Error())
 		return fmt.Errorf(messages.UserAlreadyExists)
 	}
 	return nil
 }
 
-func (r *Repository) ChangePost(postUpdate PostUpdate, postID int, isEdited bool) error {
-	// var id int
-	//should do two methods by slug and by id
+func (r *Repository) ChangePost(postUpdate PostUpdate, postID int64, isEdited bool) error {
 	_, err := r.DbConn.Exec(sql_queries.UpdatePost, postUpdate.Message,
-		isEdited, postID) //should read id?
-
+		isEdited, postID)
 	// if err != nil {
 	// 	fmt.Println(err.Error())
 	// 	return fmt.Errorf(messages.ThreadDoesNotExist)
 	// }
 
-	// fmt.Println(id)
 	return err
 }

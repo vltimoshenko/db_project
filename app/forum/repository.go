@@ -13,7 +13,7 @@ type RepositoryInterface interface {
 
 	GetThreadBySlug(string) (Thread, error)
 	GetThreadByID(int) (Thread, error)
-	GetPostByID(int) (Post, error)
+	GetPostByID(int64) (Post, error)
 
 	GetForumBySlug(string) (Forum, error)
 	GetThreads(params map[string]interface{}) ([]Thread, error)
@@ -23,7 +23,8 @@ type RepositoryInterface interface {
 
 	GetThreadsBySlug(string) ([]Thread, error)
 	GetThreadsByID(int) ([]Thread, error)
-	GetPosts(int, string, string, string, string) ([]Post, error)
+	// GetPosts(int, string, string, string, string) ([]Post, error)
+	GetPosts(threadID int, limit int64, since string, sort string, desc bool) ([]Post, error)
 
 	// GetPostsFlat(int, map[string]interface{}) ([]Post, error)
 	// GetPostsTree(int, map[string]interface{}) ([]Post, error)
@@ -34,9 +35,9 @@ type RepositoryInterface interface {
 
 	ChangeUser(NewUser, string) error
 	ChangeThread(ThreadUpdate, int) error
-	ChangeThreadRate(int, int) error
+	// ChangeThreadRate(int, int) error
 	ChangeVote(Vote, string) error
-	ChangePost(PostUpdate, int, bool) error
+	ChangePost(PostUpdate, int64, bool) error
 
 	ClearDB() error
 	GetStatus() (Status, error)

@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-
 	"github.com/db_project/pkg/sql_queries"
 )
 
@@ -27,7 +25,7 @@ func paramsThreadsToQuery(params map[string]interface{}) string {
 	}
 
 	query += ";"
-	fmt.Println(query)
+	// fmt.Println(query)
 	return query
 }
 
@@ -52,29 +50,6 @@ func paramsGetUsers(params map[string]interface{}) string {
 	}
 
 	query += ";"
-	fmt.Println(query)
+	// fmt.Println(query)
 	return query
 }
-
-// func paramsGetPostsFlat(params map[string]interface{}) string {
-// 	query := sql_queries.SelectUsersWithParams
-// 	if params["since"] != nil {
-// 		query += "AND p.id > :since "
-// 	}
-
-// 	if params["sort"] == "flat" {
-// 		query += `ORDER BY p.id  `
-
-// 		if params["desc"] != nil {
-// 			query += "DESC "
-// 		}
-// 	}
-
-// 	if params["limit"] != nil {
-// 		query += "LIMIT :limit "
-// 	}
-
-// 	query += ";"
-// 	fmt.Println(query)
-// 	return query
-// }
