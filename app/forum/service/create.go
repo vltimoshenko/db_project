@@ -13,13 +13,13 @@ import (
 )
 
 func (s Service) CreatePosts(body io.ReadCloser, slugOrId string) ([]Post, error) {
-	bytes, err := ioutil.ReadAll(body)
+	bytes, _ := ioutil.ReadAll(body)
 	// if err != nil {
 	// 	//return uuid.UUID{}, errors.New(BadRequestMsg)
 	// }
 
-	var posts []NewPost
-	err = json.Unmarshal(bytes, &posts)
+	var posts []Post
+	_ = json.Unmarshal(bytes, &posts)
 	// if err != nil {
 	// 	//return uuid.UUID{}, errors.New(InvalidJSONMsg)
 	// }
@@ -36,8 +36,10 @@ func (s Service) CreatePosts(body io.ReadCloser, slugOrId string) ([]Post, error
 		return []Post{}, errors.New(messages.ThreadDoesNotExist)
 	}
 
-	returnPosts, err := s.Repository.CreatePosts(posts, thread.ID, thread.Forum)
-
+	returnPosts, err := s.Repository.CreatePosts(posts, int64(thread.ID), thread.Forum)
+	if err != nil {
+		return returnPosts, err
+	}
 	return returnPosts, err
 }
 

@@ -44,6 +44,14 @@ $BODY$
 $BODY$ 
 LANGUAGE plpgsql;
 
+-- CREATE OR REPLACE FUNCTION get_thread_by_post(post_ BIGINT) RETURNS INTEGER AS 
+-- $BODY$
+--     BEGIN
+--         RETURN (SELECT thread FROM posts WHERE id=post_);
+--     END;
+-- $BODY$ 
+-- LANGUAGE plpgsql;
+
 CREATE UNLOGGED TABLE posts(
     id SERIAL PRIMARY KEY,
     author CITEXT REFERENCES persons (nickname) NOT NULL,
@@ -53,7 +61,7 @@ CREATE UNLOGGED TABLE posts(
     is_edited boolean DEFAULT false NOT NULL,
     message text NOT NULL,
     parent BIGINT REFERENCES posts(id) ON DELETE CASCADE ON UPDATE RESTRICT
-        CONSTRAINT par CHECK (get_thread_by_post(parent)=thread),
+        CONSTRAINT post_parent_constraint CHECK (get_thread_by_post(parent)=thread),
     -- thread INTEGER REFERENCES threads(id) ON DELETE CASCADE NOT NULL,
     thread integer,
     path INTEGER[] not null
@@ -67,6 +75,7 @@ $BODY$
     END;
 $BODY$ 
 LANGUAGE plpgsql;
+
 
 CREATE TRIGGER change_path BEFORE INSERT ON posts
     FOR EACH ROW EXECUTE PROCEDURE change_path();
@@ -159,7 +168,25 @@ CREATE INDEX IF NOT EXISTS idx_threads_forum_created ON threads(lower(forum), cr
 CREATE INDEX IF NOT EXISTS idx_votes_coverage ON votes(thread, lower(nickname), voice);
 
 
-
-
 -- create unique index forum_users_idx ON UsersInForum(forum, nickname);
 -- cluster UsersInForum USING forum_users_idx;
+
+
+-- CREATE INDEX IF NOT EXISTS idx ON threads(lower(slug)) INCLUDE id; --может быть стоит убрать
+-- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(lower(forum));
+-- CREATE UNIQUE INDEX idx_persons_nickname ON persons(lower(email));
+-- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(id); --primary key
+-- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(lower(forum));
+
+-- CREATE INDEX idx_forums_slug ON forums(lower(slug));
+-- CREATE UNIQUE INDEX idx_persons_nickname ON persons(lower(nickname));
+
+
+
+
+-- 	UpdateUserByNickname   = "UPDATE persons SET about = $1, email = $2, fullname = $3 WHERE nickname = $4;"
+--     -- check loweer for update
+-- 	UpdateVoteByThreadSlug = "UPDATE votes SET voice = $1 WHERE nickname = $2 AND thread = (SELECT id FROM threads WHERE slug = $3);"
+-- 	-- check loweer for update
+-- 	SelectVoteByThreadSlug = "SELECT nickname, voice FROM votes WHERE nickname = $1 AND thread = (SELECT id FROM threads WHERE slug = $2);"
+-- --lower 

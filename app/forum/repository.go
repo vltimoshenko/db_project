@@ -8,7 +8,7 @@ type RepositoryInterface interface {
 	CreateForum(NewForum) error
 	CreateThread(NewThread, string) (int, error)
 	CreateUser(NewUser, string) error
-	CreatePosts([]NewPost, int, string) ([]Post, error)
+	CreatePosts([]Post, int64, string) ([]Post, error)
 	CreateVote(Vote, string) error
 
 	GetThreadBySlug(string) (Thread, error)

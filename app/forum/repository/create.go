@@ -3,7 +3,9 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/db_project/pkg/messages"
@@ -11,40 +13,40 @@ import (
 	"github.com/db_project/pkg/sql_queries"
 )
 
-func (r *Repository) CreatePosts(posts []NewPost, threadID int, forum string) ([]Post, error) {
-	tx, _ := r.DbConn.Begin()
+// func (r *Repository) CreatePosts(posts []NewPost, threadID int, forum string) ([]Post, error) {
+// 	tx, _ := r.DbConn.Begin()
 
-	created := time.Now().Format(time.RFC3339)
-	returnPosts := []Post{}
+// 	created := time.Now().Format(time.RFC3339)
+// 	returnPosts := []Post{}
 
-	_, err := r.GetThreadByID(threadID)
-	if err != nil {
-		return []Post{}, fmt.Errorf(messages.ThreadDoesNotExist)
-	}
+// 	_, err := r.GetThreadByID(threadID)
+// 	if err != nil {
+// 		return []Post{}, fmt.Errorf(messages.ThreadDoesNotExist)
+// 	}
 
-	for _, post := range posts {
-		lastID, err := r.createPost(tx, post, threadID, forum, created)
-		if err != nil {
-			tx.Rollback()
-			return []Post{}, err
-		}
+// 	// for _, post := range posts {
+// 	// 	lastID, err := r.createPost(tx, post, threadID, forum, created)
+// 	// 	if err != nil {
+// 	// 		tx.Rollback()
+// 	// 		return []Post{}, err
+// 	// 	}
 
-		returnPost := Post{
-			Author:   post.Author,
-			Created:  created,
-			Forum:    forum,
-			ID:       lastID,
-			IsEdited: false,
-			Message:  post.Message,
-			Parent:   post.Parent,
-			Thread:   threadID,
-		}
-		returnPosts = append(returnPosts, returnPost)
-	}
+// 	// 	returnPost := Post{
+// 	// 		Author:   post.Author,
+// 	// 		Created:  created,
+// 	// 		Forum:    forum,
+// 	// 		ID:       lastID,
+// 	// 		IsEdited: false,
+// 	// 		Message:  post.Message,
+// 	// 		Parent:   post.Parent,
+// 	// 		Thread:   threadID,
+// 	// 	}
+// 	// 	returnPosts = append(returnPosts, returnPost)
+// 	// }
 
-	tx.Commit()
-	return returnPosts, nil
-}
+// 	tx.Commit()
+// 	return returnPosts, nil
+// }
 
 func (r *Repository) createPost(tx *sql.Tx, post NewPost, threadID int, forum string, created string) (int64, error) {
 	var lastID int64
@@ -129,4 +131,139 @@ func (r *Repository) CreateUser(user NewUser, nickname string) error {
 	// 	fmt.Printf("Rep CreateUser: %s\n", err)
 	// }
 	return err
+}
+
+func (r *Repository) CreatePosts(posts []Post, threadID int64, forum string) ([]Post, error) {
+	// postCounter++
+	// threadId, err := r.getThreadId(thread)
+	// if err != nil {
+	// 	return posts, structs.InternalError{E: structs.ErrorNoThread}
+	// }
+
+	// var cnt int64
+	// if row := r.DB.QueryRow(context.Background(), `SELECT count(id) from Thread WHERE id=$1;`, threadId); row.Scan(&cnt) != nil || cnt == 0 {
+	// 	return posts, structs.InternalError{E: structs.ErrorNoThread}
+	// }
+	// if len(posts) == 0 {
+	// 	return posts, nil
+	// }
+	// var forumSlug string
+	// err = r.DB.QueryRow(context.Background(), `SELECT forum FROM Thread WHERE Thread.id=$1`, threadId).Scan(&forumSlug)
+	// if err != nil {
+	// 	return posts, structs.InternalError{E: structs.ErrorNoThread, Explain: err.Error()}
+	// }
+
+	userList := make(map[string]bool)
+	postPacketSize := 50
+	created := time.Now().Format(time.RFC3339)
+
+	for i := 0; i < len(posts); i += postPacketSize {
+		currentPacket := posts[i:int(math.Min(float64(i+postPacketSize), float64(len(posts))))]
+		currentPacket, err := r.createPostsByPacket(threadID, forum, currentPacket, created)
+		if err != nil {
+			return posts, err
+		}
+
+		for j, post := range currentPacket {
+			posts[i+j] = post
+			userList[post.Author] = true
+		}
+	}
+
+	// query := `UPDATE ForumPosts SET posts=posts+$2 WHERE forum=$1;`
+	// _, err := r.DbConn.Exec(query, forumSlug, len(posts))
+	// if err != nil {
+	// 	return posts, structs.InternalError{E: structs.ErrorNoThread, Explain: err.Error()}
+	// }
+	// atomic.AddInt32(&forumPostsAccess.hasNewUpdates, 1)
+	// prefix := `INSERT INTO UsersInForum(nickname, forum) VALUES `
+	// postfix := `ON CONFLICT DO NOTHING`
+	// query = sqlTools.CreatePacketQuery(prefix, 2, len(userList), postfix)
+	// params := make([]interface{}, 0, len(userList))
+	// for key := range userList {
+	// 	params = append(params, key, forumSlug)
+	// }
+	// //GetMutex(forumSlug)
+	// //defer FreeMutex(forumSlug)
+	// mutexMapMutex.Lock()
+	// defer mutexMapMutex.Unlock()
+	// _, err = r.DB.Exec(context.Background(), query, params...)
+	// if err != nil {
+	// 	return posts, structs.InternalError{E: structs.ErrorNoThread, Explain: err.Error()}
+	// }
+	return posts, nil
+}
+
+func (r *Repository) createPostsByPacket(threadId int64, forumSLug string, posts []Post, created string) ([]Post, error) {
+	var params []interface{}
+
+	for _, post := range posts {
+		var parent sql.NullInt64
+		parent.Int64 = post.Parent
+		if post.Parent != 0 {
+			parent.Valid = true
+		}
+
+		params = append(params, post.Author, post.Message, parent, threadId, created, forumSLug)
+	}
+
+	query := `INSERT INTO posts(author, message, parent, thread, created, forum)VALUES `
+	postfix := ` RETURNING id;`
+
+	query = CreatePacketQuery(query, 6, len(posts), postfix) //10
+
+	rows, err := r.DbConn.Query(query, params...)
+	fmt.Println("createPostsByPacket: QueryComplete")
+
+	if err != nil {
+		fmt.Printf("createPostsByPacket: %s\n", err.Error())
+		if strings.Contains(err.Error(), "post_parent_constraint") {
+			return posts, fmt.Errorf(messages.ParentInAnotherThread)
+		} else {
+			return posts, fmt.Errorf(messages.UserNotFound)
+		}
+	}
+
+	defer rows.Close()
+
+	// if err != nil || (rows != nil && rows.Err() != nil) {
+	// 	fmt.Printf("createPostsByPacket: %s\n", rows.Err())
+	// 	return posts, err
+	// }
+
+	i := 0
+	for rows.Next() {
+		err := rows.Scan(&(posts[i].ID))
+		if err != nil {
+			fmt.Printf("createPostsByPacket: %s\n", err.Error())
+			return posts, err //undef error
+		}
+		posts[i].Forum = forumSLug
+		posts[i].Created = created
+		posts[i].IsEdited = false
+		posts[i].Thread = int(threadId)
+		i++
+	}
+
+	if i == 0 && len(posts) > 0 {
+		// if row := r.DbConn.QueryRow(`SELECT count(id) from threads WHERE id=$1;`, threadId); row.Scan(&cnt) != nil || cnt == 0 {
+		// 	return posts, fmt.Errorf(messages.ThreadDoesNotExist)
+		// } else if row := r.DbConn.QueryRow(`SELECT COUNT(nickname) FROM persons WHERE nickname=$1`, posts[0].Author); row.Scan(&cnt) != nil || cnt == 0 {
+		// 	return posts, fmt.Errorf(messages.UserNotFound)
+
+		// } else {
+		// 	return posts, fmt.Errorf(messages.ParentInAnotherThread)
+		// }
+		_, err := r.GetThreadByID(int(threadId))
+		if err != nil {
+			return posts, fmt.Errorf(messages.ThreadDoesNotExist)
+		}
+
+		_, err = r.GetUserByNickname(posts[0].Author)
+		if err != nil {
+			return posts, fmt.Errorf(messages.UserNotFound)
+		}
+		return posts, fmt.Errorf(messages.ParentInAnotherThread)
+	}
+	return posts, nil
 }
