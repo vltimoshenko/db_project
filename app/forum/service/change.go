@@ -46,44 +46,36 @@ func (s Service) ChangeThread(threadUpdate ThreadUpdate, slugOrId string) (Threa
 }
 
 func (s Service) ChangeUser(newUser NewUser, nickname string) (User, error) {
-
-	oldUser, err := s.Repository.GetUserByNickname(nickname)
+	_, err := s.Repository.GetUserByNickname(nickname)
 	if err != nil {
 		return User{}, fmt.Errorf(messages.UserNotFound)
 	}
 
-	// mutex
-	userByEmail, _ := s.Repository.GetUserByEmail(newUser.Email)
+	// userByEmail, _ := s.Repository.GetUserByEmail(newUser.Email)
 	// if err == nil {
 	// 	return User{}, fmt.Errorf(messages.UserAlreadyExists)
 	// }
 	//consider db error
 
-	if userByEmail.Nickname != "" && userByEmail.Nickname != nickname {
-		return User{}, fmt.Errorf(messages.UserAlreadyExists)
-	}
+	// if userByEmail.Nickname != "" && userByEmail.Nickname != nickname {
+	// 	return User{}, fmt.Errorf(messages.UserAlreadyExists)
+	// }
 
-	if newUser.About == "" {
-		newUser.About = oldUser.About
-	}
-	if newUser.Email == "" {
-		newUser.Email = oldUser.Email
-	}
-	if newUser.Fullname == "" {
-		newUser.Fullname = oldUser.Fullname
-	}
+	// if newUser.About == "" {
+	// 	newUser.About = oldUser.About
+	// }
+	// if newUser.Email == "" {
+	// 	newUser.Email = oldUser.Email
+	// }
+	// if newUser.Fullname == "" {
+	// 	newUser.Fullname = oldUser.Fullname
+	// }
 
-	err = s.Repository.ChangeUser(newUser, nickname)
+	user, err := s.Repository.ChangeUser(newUser, nickname)
 
 	if err != nil {
-		return User{}, err
-	}
-
-	user := User{
-		About:    newUser.About,
-		Email:    newUser.Email,
-		Fullname: newUser.Fullname,
-		Nickname: nickname,
+		fmt.Printf("Serv ChangeUser: %s", err.Error())
+		return User{}, fmt.Errorf(messages.UserAlreadyExists)
 	}
 
 	return user, nil

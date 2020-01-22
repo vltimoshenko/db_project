@@ -2,12 +2,12 @@ package repository
 
 import (
 	"fmt"
-"log"
 	"github.com/db_project/pkg/messages"
 	. "github.com/db_project/pkg/models"
 	"github.com/db_project/pkg/sql_queries"
 	"github.com/jackc/pgtype"
 	"github.com/jmoiron/sqlx"
+	"log"
 )
 
 func (r *Repository) GetThreadByID(id int64) (Thread, error) {
@@ -173,7 +173,7 @@ func (r *Repository) GetForumBySlug(slug string) (Forum, error) {
 	err := row.StructScan(&forum)
 	if err != nil {
 		fmt.Println(err)
-		return forum, err //fmt.Errorf()
+		return forum, err
 	}
 
 	return forum, nil

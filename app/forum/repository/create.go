@@ -6,6 +6,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/db_project/pkg/messages"
@@ -70,6 +71,14 @@ func (r *Repository) CreateUser(user NewUser, nickname string) error {
 	return err
 }
 
+func init() {
+	mutexMapMutex = sync.Mutex{}
+}
+
+var postCounter int64
+
+var mutexMapMutex sync.Mutex
+
 func (r *Repository) CreatePosts(posts []Post, threadID int64, forum string) ([]Post, error) {
 	// postCounter++
 	// threadId, err := r.getThreadId(thread)
@@ -90,7 +99,7 @@ func (r *Repository) CreatePosts(posts []Post, threadID int64, forum string) ([]
 	// 	return posts, structs.InternalError{E: structs.ErrorNoThread, Explain: err.Error()}
 	// }
 
-	// userList := make(map[string]bool)
+	userList := make(map[string]bool)
 	if len(posts) == 0 {
 		return posts, nil
 	}
@@ -107,7 +116,7 @@ func (r *Repository) CreatePosts(posts []Post, threadID int64, forum string) ([]
 
 		for j, post := range currentPacket {
 			posts[i+j] = post
-			// userList[post.Author] = true
+			userList[post.Author] = true
 		}
 	}
 
@@ -117,21 +126,22 @@ func (r *Repository) CreatePosts(posts []Post, threadID int64, forum string) ([]
 	// 	return posts, structs.InternalError{E: structs.ErrorNoThread, Explain: err.Error()}
 	// }
 	// atomic.AddInt32(&forumPostsAccess.hasNewUpdates, 1)
-	// prefix := `INSERT INTO UsersInForum(nickname, forum) VALUES `
-	// postfix := `ON CONFLICT DO NOTHING`
-	// query = sqlTools.CreatePacketQuery(prefix, 2, len(userList), postfix)
-	// params := make([]interface{}, 0, len(userList))
-	// for key := range userList {
-	// 	params = append(params, key, forumSlug)
-	// }
-	// //GetMutex(forumSlug)
-	// //defer FreeMutex(forumSlug)
-	// mutexMapMutex.Lock()
-	// defer mutexMapMutex.Unlock()
-	// _, err = r.DB.Exec(context.Background(), query, params...)
-	// if err != nil {
-	// 	return posts, structs.InternalError{E: structs.ErrorNoThread, Explain: err.Error()}
-	// }
+
+	prefix := `INSERT INTO forum_users(person, forum) VALUES `
+	postfix := `ON CONFLICT DO NOTHING`
+	query := CreatePacketQuery(prefix, 2, len(userList), postfix)
+	params := make([]interface{}, 0, len(userList))
+	for key := range userList {
+		params = append(params, key, forum)
+	}
+	// GetMutex(forumSlug)
+	// defer FreeMutex(forumSlug)
+	mutexMapMutex.Lock()
+	defer mutexMapMutex.Unlock()
+	_, err := r.DbConn.Exec(query, params...)
+	if err != nil {
+		return posts, fmt.Errorf(messages.ThreadDoesNotExist)
+	}
 	return posts, nil
 }
 
@@ -148,7 +158,7 @@ func (r *Repository) createPostsByPacket(threadId int64, forumSLug string, posts
 		params = append(params, post.Author, post.Message, parent, threadId, created, forumSLug)
 	}
 
-	query := `INSERT INTO posts(author, message, parent, thread, created, forum)VALUES `
+	query := sql_queries.InsertPosts
 	postfix := ` RETURNING id;`
 
 	query = CreatePacketQuery(query, 6, len(posts), postfix) //10
@@ -181,34 +191,36 @@ func (r *Repository) createPostsByPacket(threadId int64, forumSLug string, posts
 		i++
 	}
 
-	if i == 0 && len(posts) > 0 {
-		_, err := r.GetThreadByID(threadId) //conv
-		if err != nil {
-			fmt.Println("createPostsByPacket: i == 0 && len(posts) > 0")
-			return posts, fmt.Errorf(messages.ThreadDoesNotExist)
-		}
-
-		_, err = r.GetUserByNickname(posts[0].Author)
-		if err != nil {
-			fmt.Printf("createPostsByPacket: %s\n", err.Error())
-			return posts, fmt.Errorf(messages.UserNotFound)
-		}
-		fmt.Println("createPostsByPacket: messages.ParentInAnotherThread\n")
-		return posts, fmt.Errorf(messages.ParentInAnotherThread)
-	}
-	// var cnt int64
 	// if i == 0 && len(posts) > 0 {
-	// 	fmt.Println("createPostsByPacket: i == 0 && len(posts) > 0")
-	// 	if row := r.DbConn.QueryRow(`SELECT count(id) from threads WHERE id=$1;`, threadId); row.Scan(&cnt) != nil || cnt == 0 {
-	// 		// fmt.Printf("createPostsByPacket: %s\n", err.Error())
-	// 		return posts, fmt.Errorf(messages.UserNotFound)
-	// 	} else if row := r.DbConn.QueryRow(`SELECT COUNT(nickname) FROM persons WHERE nickname=$1`, posts[0].Author); row.Scan(&cnt) != nil || cnt == 0 {
-	// 		// fmt.Printf("createPostsByPacket: %s\n", err.Error())
-	// 		return posts, fmt.Errorf(messages.UserNotFound)
-	// 	} else {
-	// 		return posts, fmt.Errorf(messages.ParentInAnotherThread)
+	// 	_, err := r.GetThreadByID(threadId) //conv
+	// 	if err != nil {
+	// 		fmt.Println("createPostsByPacket: i == 0 && len(posts) > 0")
+	// 		return posts, fmt.Errorf(messages.ThreadDoesNotExist)
 	// 	}
+
+	// 	_, err = r.GetUserByNickname(posts[0].Author)
+	// 	if err != nil {
+	// 		fmt.Printf("createPostsByPacket: %s\n", err.Error())
+	// 		return posts, fmt.Errorf(messages.UserNotFound)
+	// 	}
+	// 	fmt.Println("createPostsByPacket: messages.ParentInAnotherThread")
+	// 	return posts, fmt.Errorf(messages.ParentInAnotherThread)
 	// }
-	fmt.Println("createPostsByPacket: i = %d, len(posts) = %d", i, len(posts))
+
+	var cnt int64
+	if i == 0 && len(posts) > 0 {
+		fmt.Println("createPostsByPacket: i == 0 && len(posts) > 0")
+		if row := r.DbConn.QueryRow(`SELECT count(id) from threads WHERE id=$1;`, threadId); row.Scan(&cnt) != nil || cnt == 0 {
+			// fmt.Printf("createPostsByPacket: %s\n", err.Error())
+			return posts, fmt.Errorf(messages.UserNotFound)
+		} else if row := r.DbConn.QueryRow(`SELECT COUNT(nickname) FROM persons WHERE nickname=$1`, posts[0].Author); row.Scan(&cnt) != nil || cnt == 0 {
+			// fmt.Printf("createPostsByPacket: %s\n", err.Error())
+			return posts, fmt.Errorf(messages.UserNotFound)
+		} else {
+			fmt.Println("createPostsByPacket: messages.ParentInAnotherThread")
+			return posts, fmt.Errorf(messages.ParentInAnotherThread)
+		}
+	}
+	fmt.Printf("createPostsByPacket: i = %d, len(posts) = %d", i, len(posts))
 	return posts, nil
 }

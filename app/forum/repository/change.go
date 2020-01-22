@@ -1,17 +1,14 @@
 package repository
 
 import (
-	"fmt"
 	"strconv"
 
-	"github.com/db_project/pkg/messages"
 	. "github.com/db_project/pkg/models"
 	"github.com/db_project/pkg/sql_queries"
 )
 
 func (r *Repository) ChangeThread(threadUpdate ThreadUpdate, threadID int64) error {
-	// var id int
-	//should do two methods by slug and by id
+
 	_ = r.DbConn.QueryRow(sql_queries.UpdateThreadByID, threadUpdate.Message,
 		threadUpdate.Title, threadID) //should read id?
 
@@ -23,12 +20,6 @@ func (r *Repository) ChangeThread(threadUpdate ThreadUpdate, threadID int64) err
 	// fmt.Println(id)
 	return nil
 }
-
-// func (r *Repository) ChangeThreadRate(dif int, threadID int) error {
-// 	_, err := r.DbConn.Exec(sql_queries.UpdateThreadRating, dif, threadID)
-// 	return err
-// }
-
 func (r *Repository) ChangeVote(updateVote Vote, slugOrID string) error {
 	threadID, err := strconv.Atoi(slugOrID)
 	if err != nil {
@@ -42,15 +33,12 @@ func (r *Repository) ChangeVote(updateVote Vote, slugOrID string) error {
 
 }
 
-func (r *Repository) ChangeUser(user NewUser, nickname string) error {
-	_, err := r.DbConn.Exec(sql_queries.UpdateUserByNickname, user.About,
-		user.Email, user.Fullname, nickname) //should read id?
+func (r *Repository) ChangeUser(user NewUser, nickname string) (User, error) {
+	var retUser User
+	err := r.DbConn.QueryRowx(sql_queries.UpdateUserByNickname, nickname,
+		user.About, user.Email, user.Fullname).StructScan(&retUser)
 
-	if err != nil {
-		// fmt.Println(err.Error())
-		return fmt.Errorf(messages.UserAlreadyExists)
-	}
-	return nil
+	return retUser, err
 }
 
 func (r *Repository) ChangePost(postUpdate PostUpdate, postID int64, isEdited bool) error {

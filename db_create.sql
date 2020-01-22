@@ -6,9 +6,9 @@ DROP TABLE IF EXISTS persons;
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE UNLOGGED TABLE persons(
-    nickname CITEXT COLLATE "POSIX" PRIMARY KEY CONSTRAINT persons_nick_right CHECK(nickname ~ '^[A-Za-z0-9_\.]*$'),
+    nickname CITEXT COLLATE "POSIX" PRIMARY KEY, --CONSTRAINT persons_nick_right CHECK(nickname ~ '^[A-Za-z0-9_\.]*$'),
     about TEXT NOT NULL DEFAULT '',
-    email CITEXT NOT NULL UNIQUE CONSTRAINT persons_email_right CHECK(email ~ '^.*@[A-Za-z0-9\-_\.]*$'),
+    email CITEXT NOT NULL UNIQUE, -- CONSTRAINT persons_email_right CHECK(email ~ '^.*@[A-Za-z0-9\-_\.]*$'),
     fullname TEXT NOT NULL DEFAULT ''
 );
 
@@ -27,11 +27,11 @@ CREATE UNLOGGED TABLE threads(
     author CITEXT REFERENCES persons (nickname) ON DELETE CASCADE ON UPDATE CASCADE NOT NULL,
     -- author text NOT NULL REFERENCES persons(nickname) ON DELETE CASCADE NOT NULL,
     created timestamptz DEFAULT now(),
-    forum text NOT NULL,
-   -- forum text REFERENCES forums(slug) ON DELETE CASCADE NOT NULL,
+    -- forum text NOT NULL,
+    forum CITEXT NOT NULL,
     message text NOT NULL,
     -- slug text UNIQUE,
-    slug CITEXT UNIQUE CONSTRAINT slug_correct CHECK(slug ~ '^(\d|\w|-|_)*(\w|-|_)(\d|\w|-|_)*$'),
+    slug CITEXT UNIQUE, --CONSTRAINT slug_correct CHECK(slug ~ '^(\d|\w|-|_)*(\w|-|_)(\d|\w|-|_)*$'),
     title text NOT NULL,
     votes integer DEFAULT 0 NOT NULL
 );
@@ -83,7 +83,6 @@ CREATE TRIGGER change_path BEFORE INSERT ON posts
 CREATE UNLOGGED TABLE votes(
     -- nickname text NOT NULL REFERENCES persons(nickname) ON DELETE CASCADE,
     nickname CITEXT REFERENCES persons (nickname) ON DELETE CASCADE ON UPDATE CASCADE NOT NULL,
-
     voice smallint NOT NULL,
     thread integer NOT NULL,
     -- thread integer REFERENCES threads(id) ON DELETE CASCADE NOT NULL,
@@ -150,11 +149,9 @@ CREATE TRIGGER update_thread_vote AFTER INSERT OR UPDATE ON votes
     FOR EACH ROW EXECUTE PROCEDURE update_thread_votes_counter();
 
 CREATE UNLOGGED TABLE forum_users (
-    forum text not null,
-    person text not null
+    forum CITEXT NOT NULL,
+    person CITEXT NOT NULL
 );
-create unique index on forum_users(forum, person); --reverse
-
 
 CREATE OR REPLACE FUNCTION  add_user_to_forum() returns trigger as
 $BODY$
@@ -166,11 +163,11 @@ $BODY$
 language plpgsql;
 
 
-create trigger forum_user_after_post
-    after insert
-    on posts
-    for each row
-execute procedure add_user_to_forum();
+-- create trigger forum_user_after_post
+--     after insert
+--     on posts
+--     for each row
+-- execute procedure add_user_to_forum();
 
 create trigger forum_user_after_thread
     after insert
@@ -179,47 +176,23 @@ create trigger forum_user_after_thread
 execute procedure add_user_to_forum();
 
 ----------------------------------------------------------------
-CREATE UNIQUE INDEX idx_persons_nickname ON persons(nickname);
-CREATE INDEX IF NOT EXISTS idx_persons_email ON persons(email);
+CREATE UNIQUE INDEX idx_persons_nickname ON persons(nickname); --+
+CREATE INDEX IF NOT EXISTS idx_persons_email ON persons(email); --+
 
-CREATE UNIQUE INDEX idx_forums_slug ON forums(slug);
+CREATE UNIQUE INDEX idx_forums_slug ON forums(slug); --+
 
-CREATE INDEX IF NOT EXISTS idx_posts_thread ON posts(thread);
-CREATE INDEX IF NOT EXISTS idx_posts_id_thread ON posts(id, thread);
-CREATE INDEX IF NOT EXISTS idx_posts_forum_author ON posts(lower(forum), lower(author));
-CREATE INDEX IF NOT EXISTS idx_posts_author ON posts(lower(author));
-CREATE INDEX IF NOT EXISTS idx_post_path_first ON posts((path[1]));
-CREATE INDEX IF NOT EXISTS idx_post_parent_thread_path_id ON posts(thread, (path[1]), id) WHERE parent IS NUll;
+CREATE INDEX IF NOT EXISTS idx_posts_thread ON posts(thread); -- -
+CREATE INDEX IF NOT EXISTS idx_posts_id_thread ON posts(id, thread); -- +
+CREATE INDEX IF NOT EXISTS idx_posts_forum_author ON posts(forum, author); -- +
+CREATE INDEX IF NOT EXISTS idx_posts_author ON posts(author); -- -
+CREATE INDEX IF NOT EXISTS idx_post_path_first ON posts((path[1])); -- +
+CREATE INDEX IF NOT EXISTS idx_post_parent_thread_path_id ON posts(thread, (path[1]), id) WHERE parent IS NUll; -- +
 
-CREATE INDEX IF NOT EXISTS idx_threads_id ON threads(id); --primary key
-CREATE UNIQUE INDEX idx_threads_slug ON threads(lower(slug)) INCLUDE (id);
-CREATE INDEX IF NOT EXISTS idx_threads_author ON threads(lower(author));
--- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(lower(forum));
--- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(forum);
-CREATE INDEX IF NOT EXISTS idx_threads_forum_created ON threads(lower(forum), created); --+
+CREATE INDEX IF NOT EXISTS idx_threads_id ON threads(id); --primary key -- +
+CREATE UNIQUE INDEX idx_threads_slug ON threads(slug) INCLUDE (id); -- +
+CREATE INDEX IF NOT EXISTS idx_threads_author ON threads(author);  -- +
+CREATE INDEX IF NOT EXISTS idx_threads_forum_created ON threads(forum, created); --+
 
-CREATE INDEX IF NOT EXISTS idx_votes_coverage ON votes(thread, lower(nickname)) INCLUDE (voice); --+
+CREATE INDEX IF NOT EXISTS idx_votes_coverage ON votes(thread, nickname) INCLUDE (voice); --+
 
-
--- create unique index forum_users_idx ON UsersInForum(forum, nickname);
--- cluster UsersInForum USING forum_users_idx;
-
-
--- CREATE INDEX IF NOT EXISTS idx ON threads(lower(slug)) INCLUDE id; --может быть стоит убрать
--- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(lower(forum));
--- CREATE UNIQUE INDEX idx_persons_nickname ON persons(lower(email));
--- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(id); --primary key
-
--- CREATE INDEX idx_forums_slug ON forums(lower(slug));
--- CREATE UNIQUE INDEX idx_persons_nickname ON persons(lower(nickname));
-
-
-
-
--- 	UpdateUserByNickname   = "UPDATE persons SET about = $1, email = $2, fullname = $3 WHERE nickname = $4;"
---     -- check loweer for update
--- 	UpdateVoteByThreadSlug = "UPDATE votes SET voice = $1 WHERE nickname = $2 AND thread = (SELECT id FROM threads WHERE slug = $3);"
--- 	-- check loweer for update
--- 	SelectVoteByThreadSlug = "SELECT nickname, voice FROM votes WHERE nickname = $1 AND thread = (SELECT id FROM threads WHERE slug = $2);"
--- --lower 
---------------------------------------------------------------------
+create unique index on forum_users(forum, person); --reverse

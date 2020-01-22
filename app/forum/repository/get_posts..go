@@ -147,12 +147,13 @@ func (r *Repository) GetPosts(threadID int64, limit int64, since string, sort st
 
 		posts = append(posts, post)
 	}
-	if len(posts) == 0 {
-		var sl pgtype.Text
-		err = r.DbConn.QueryRow(`SELECT slug from threads WHERE id=$1`, threadID).Scan(&sl)
-		if err != nil {
-			return posts, err
-		}
-	}
+
+	// if len(posts) == 0 {
+	// 	var sl pgtype.Text
+	// 	err = r.DbConn.QueryRow(`SELECT slug from threads WHERE id=$1`, threadID).Scan(&sl)
+	// 	if err != nil {
+	// 		return posts, err
+	// 	}
+	// }
 	return posts, nil
 }

@@ -26,7 +26,7 @@ type RepositoryInterface interface {
 	GetVoteByThreadID(nickname string, thread int64) (Vote, error)
 	GetVoteByThreadSlug(nickname string, threadSlug string) (Vote, error)
 
-	ChangeUser(NewUser, string) error
+	ChangeUser(NewUser, string) (User, error)
 	ChangeThread(ThreadUpdate, int64) error
 	ChangeVote(Vote, string) error
 	ChangePost(PostUpdate, int64, bool) error

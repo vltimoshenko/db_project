@@ -23,7 +23,18 @@ func (h *Handler) CreatePosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	forum, err := h.Service.CreatePosts(r.Body, slugOrId)
+	bytes, _ := ioutil.ReadAll(r.Body)
+	// if err != nil {
+	// 	//return uuid.UUID{}, errors.New(BadRequestMsg)
+	// }
+
+	var posts []Post
+	_ = json.Unmarshal(bytes, &posts)
+	// if err != nil {
+	// 	//return uuid.UUID{}, errors.New(InvalidJSONMsg)
+	// }
+
+	forum, err := h.Service.CreatePosts(posts, slugOrId)
 
 	if err != nil {
 		if err.Error() == messages.ParentInAnotherThread || err.Error() == messages.ParentPostDoesNotExist {
@@ -37,6 +48,7 @@ func (h *Handler) CreatePosts(w http.ResponseWriter, r *http.Request) {
 			SetError(w, 404, err.Error())
 			return
 		}
+		fmt.Printf("Handler CreatePosts Unknown error: %s", err.Error())
 	}
 
 	answer, _ := json.Marshal(forum)
@@ -49,13 +61,26 @@ func (h *Handler) CreateForum(w http.ResponseWriter, r *http.Request) { //+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	code := 201
 
-	forum, err := h.Service.CreateForum(r.Body)
+	bytes, _ := ioutil.ReadAll(r.Body)
+	// if err != nil {
+	// 	//return uuid.UUID{}, errors.New(BadRequestMsg)
+	// }
+
+	var forum NewForum
+	err := json.Unmarshal(bytes, &forum)
+	// if err != nil {
+	// 	//return uuid.UUID{}, errors.New(InvalidJSONMsg)
+	// }
+
+	//could remove to creation moment or after get
+
+	retForum, err := h.Service.CreateForum(forum)
 
 	var answer []byte
 	if err != nil {
 		if err.Error() == messages.ForumAlreadyExists {
 			code = 409
-			answer, _ = json.Marshal(forum)
+			answer, _ = json.Marshal(retForum)
 		}
 
 		if err.Error() == messages.UserNotFound {
@@ -65,10 +90,10 @@ func (h *Handler) CreateForum(w http.ResponseWriter, r *http.Request) { //+
 	}
 	if code != 409 {
 		answer, _ = json.Marshal(NewForum{
-			Slug:  forum.Slug,
-			Title: forum.Title,
-			User:  forum.User,
-		})
+			Slug:  retForum.Slug,
+			Title: retForum.Title,
+			User:  retForum.User,
+		}) //could be removed
 	}
 
 	w.WriteHeader(code)

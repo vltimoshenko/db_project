@@ -1,29 +1,15 @@
 package service
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"strconv"
 
 	"github.com/db_project/pkg/messages"
 	. "github.com/db_project/pkg/models"
 )
 
-func (s Service) CreatePosts(body io.ReadCloser, slugOrId string) ([]Post, error) {
-	bytes, _ := ioutil.ReadAll(body)
-	// if err != nil {
-	// 	//return uuid.UUID{}, errors.New(BadRequestMsg)
-	// }
-
-	var posts []Post
-	_ = json.Unmarshal(bytes, &posts)
-	// if err != nil {
-	// 	//return uuid.UUID{}, errors.New(InvalidJSONMsg)
-	// }
-
+func (s Service) CreatePosts(posts []Post, slugOrId string) ([]Post, error) {
 	threadID, err := strconv.ParseInt(slugOrId, 10, 64)
 
 	var thread Thread
@@ -121,19 +107,8 @@ func (s Service) CreateUser(newUser NewUser, nickname string) ([]User, error) {
 	return users, err
 }
 
-func (s Service) CreateForum(body io.ReadCloser) (Forum, error) {
-	bytes, _ := ioutil.ReadAll(body)
-	// if err != nil {
-	// 	//return uuid.UUID{}, errors.New(BadRequestMsg)
-	// }
+func (s Service) CreateForum(forum NewForum) (Forum, error) {
 
-	var forum NewForum
-	err := json.Unmarshal(bytes, &forum)
-	// if err != nil {
-	// 	//return uuid.UUID{}, errors.New(InvalidJSONMsg)
-	// }
-
-	//could remove to creation moment or after get
 	user, err := s.Repository.GetUserByNickname(forum.User)
 	if err != nil {
 		return Forum{}, fmt.Errorf(messages.UserNotFound)
@@ -142,7 +117,7 @@ func (s Service) CreateForum(body io.ReadCloser) (Forum, error) {
 	returnForum, err := s.Repository.GetForumBySlug(forum.Slug)
 	if err == nil {
 		return returnForum, fmt.Errorf(messages.ForumAlreadyExists)
-	}
+	} //reverse order
 
 	forum.User = user.Nickname
 	err = s.Repository.CreateForum(forum)

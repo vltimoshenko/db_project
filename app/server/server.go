@@ -18,6 +18,7 @@ import (
 	"github.com/db_project/app/server/delivery"
 
 	"github.com/db_project/pkg/config"
+	"github.com/db_project/pkg/middleware"
 )
 
 func NewRouter() (*mux.Router, error) {
@@ -43,7 +44,7 @@ func NewRouter() (*mux.Router, error) {
 	}
 
 	router = router.PathPrefix("/api").Subrouter()
-	// router.Use(middleware.AccessLogMiddleware)
+	router.Use(middleware.AccessLogMiddleware)
 
 	router.HandleFunc("/forum/create", h.CreateForum).Methods(http.MethodPost)
 	router.HandleFunc("/forum/{slug}/create", h.CreateThread).Methods(http.MethodPost)
@@ -102,5 +103,27 @@ func OpenSqlxViaPgxConnPool(psqURI string) (*sqlx.DB, error) {
 
 	fmt.Println("OpenSqlxViaPgxConnPool: the connection was created")
 	return sqlx.NewDb(nativeDB, "pgx"), nil
-
 }
+
+// func OpenSqlxViaPgxConnPool(psqURI string) (*sqlx.DB, error) {
+// 	conf, err := pgx.ParseURI(psqURI)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	connPool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
+// 		ConnConfig: conf,
+// 		// MaxConnections: config.MaxConn,
+// 	})
+
+// 	if err != nil {
+// 		log.Println(err.Error())
+// 		log.Fatal("Failed to create connections pool")
+// 	}
+
+// 	nativeDB := stdlib.OpenDBFromPool(connPool)
+
+// 	fmt.Println("OpenSqlxViaPgxConnPool: the connection was created")
+// 	// return sqlx.NewDb(nativeDB, "pgx"), nil
+// 	return nativeDB
+// }
