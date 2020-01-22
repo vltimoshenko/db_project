@@ -6,32 +6,28 @@ DROP TABLE IF EXISTS persons;
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE UNLOGGED TABLE persons(
-    nickname CITEXT COLLATE "POSIX" PRIMARY KEY, --CONSTRAINT persons_nick_right CHECK(nickname ~ '^[A-Za-z0-9_\.]*$'),
+    -- nickname CITEXT COLLATE "POSIX" PRIMARY KEY,
+    nickname CITEXT PRIMARY KEY,
     about TEXT NOT NULL DEFAULT '',
-    email CITEXT NOT NULL UNIQUE, -- CONSTRAINT persons_email_right CHECK(email ~ '^.*@[A-Za-z0-9\-_\.]*$'),
+    email CITEXT NOT NULL UNIQUE,
     fullname TEXT NOT NULL DEFAULT ''
 );
 
 CREATE UNLOGGED TABLE forums(
     posts integer DEFAULT 0 NOT NULL,
     slug citext PRIMARY KEY,
-    -- slug text PRIMARY KEY,
     threads integer DEFAULT 0 NOT NULL,
-    title text DEFAULT ''NOT NULL,
+    title text DEFAULT '' NOT NULL,
     person CITEXT REFERENCES persons (nickname) ON DELETE RESTRICT ON UPDATE RESTRICT NOT NULL
-    -- person text NOT NULL REFERENCES persons(nickname) ON DELETE CASCADE NOT NULL
 );
 
 CREATE UNLOGGED TABLE threads(
     id SERIAL PRIMARY KEY,
     author CITEXT REFERENCES persons (nickname) ON DELETE CASCADE ON UPDATE CASCADE NOT NULL,
-    -- author text NOT NULL REFERENCES persons(nickname) ON DELETE CASCADE NOT NULL,
     created timestamptz DEFAULT now(),
-    -- forum text NOT NULL,
     forum CITEXT NOT NULL,
     message text NOT NULL,
-    -- slug text UNIQUE,
-    slug CITEXT UNIQUE, --CONSTRAINT slug_correct CHECK(slug ~ '^(\d|\w|-|_)*(\w|-|_)(\d|\w|-|_)*$'),
+    slug CITEXT UNIQUE,
     title text NOT NULL,
     votes integer DEFAULT 0 NOT NULL
 );
@@ -44,25 +40,15 @@ $BODY$
 $BODY$ 
 LANGUAGE plpgsql;
 
--- CREATE OR REPLACE FUNCTION get_thread_by_post(post_ BIGINT) RETURNS INTEGER AS 
--- $BODY$
---     BEGIN
---         RETURN (SELECT thread FROM posts WHERE id=post_);
---     END;
--- $BODY$ 
--- LANGUAGE plpgsql;
-
 CREATE UNLOGGED TABLE posts(
     id SERIAL PRIMARY KEY,
     author CITEXT REFERENCES persons (nickname) NOT NULL,
     created timestamp with time zone DEFAULT '1970-01-01 03:00:00+03'::timestamp with time zone NOT NULL,
-    -- forum text REFERENCES forums(slug) ON DELETE CASCADE NOT NULL,
     forum CITEXT,
     is_edited boolean DEFAULT false NOT NULL,
     message text NOT NULL,
     parent BIGINT REFERENCES posts(id) ON DELETE CASCADE ON UPDATE RESTRICT
         CONSTRAINT post_parent_constraint CHECK (get_thread_by_post(parent)=thread),
-    -- thread INTEGER REFERENCES threads(id) ON DELETE CASCADE NOT NULL,
     thread integer,
     path INTEGER[] not null
 );
@@ -81,11 +67,9 @@ CREATE TRIGGER change_path BEFORE INSERT ON posts
     FOR EACH ROW EXECUTE PROCEDURE change_path();
 
 CREATE UNLOGGED TABLE votes(
-    -- nickname text NOT NULL REFERENCES persons(nickname) ON DELETE CASCADE,
     nickname CITEXT REFERENCES persons (nickname) ON DELETE CASCADE ON UPDATE CASCADE NOT NULL,
     voice smallint NOT NULL,
     thread integer NOT NULL,
-    -- thread integer REFERENCES threads(id) ON DELETE CASCADE NOT NULL,
     PRIMARY KEY(nickname, thread)
 );
 
@@ -163,19 +147,11 @@ $BODY$
 language plpgsql;
 
 
--- create trigger forum_user_after_post
---     after insert
---     on posts
---     for each row
--- execute procedure add_user_to_forum();
 
-create trigger forum_user_after_thread
-    after insert
-    on threads
-    for each row
-execute procedure add_user_to_forum();
+CREATE TRIGGER forum_user_after_thread AFTER INSERT ON threads
+    for each row execute procedure add_user_to_forum();
 
-----------------------------------------------------------------
+
 CREATE UNIQUE INDEX idx_persons_nickname ON persons(nickname); --+
 CREATE INDEX IF NOT EXISTS idx_persons_email ON persons(email); --+
 

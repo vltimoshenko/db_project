@@ -49,14 +49,7 @@ func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
 
 	status, _ := h.Service.GetStatus()
 	// if err != nil {
-	// 	if err.Error() == messages.UserAlreadyExists {
-	// 		code = 409
-	// 	}
-	// 	// if err.Error() == messages.UserNotFound {
-	// 	// 	SetError(w, 404, err.Error())
-	// 	// 	return
-	// 	// }
-	// 	log.Println(err.Error())
+	// 	SetError(w, 500, err.Error())
 	// }
 	answer, _ := json.Marshal(status)
 

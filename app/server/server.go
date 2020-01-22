@@ -8,6 +8,8 @@ import (
 	"github.com/gorilla/mux"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 
 	// "github.com/valyala/fasthttp"
 	// "github.com/valyala/fasthttp/fasthttpadaptor"
@@ -78,7 +80,7 @@ func RunServer() {
 		log.Println(err.Error())
 		log.Fatal("Failed to create router")
 	}
-	log.Fatal(http.ListenAndServe(config.HostAddress, router))
+	log.Fatal(fasthttp.ListenAndServe(config.HostAddress, fasthttpadaptor.NewFastHTTPHandler(router)))
 }
 
 func OpenSqlxViaPgxConnPool() (*sqlx.DB, error) {

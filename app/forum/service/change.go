@@ -51,26 +51,6 @@ func (s Service) ChangeUser(newUser NewUser, nickname string) (User, error) {
 		return User{}, fmt.Errorf(messages.UserNotFound)
 	}
 
-	// userByEmail, _ := s.Repository.GetUserByEmail(newUser.Email)
-	// if err == nil {
-	// 	return User{}, fmt.Errorf(messages.UserAlreadyExists)
-	// }
-	//consider db error
-
-	// if userByEmail.Nickname != "" && userByEmail.Nickname != nickname {
-	// 	return User{}, fmt.Errorf(messages.UserAlreadyExists)
-	// }
-
-	// if newUser.About == "" {
-	// 	newUser.About = oldUser.About
-	// }
-	// if newUser.Email == "" {
-	// 	newUser.Email = oldUser.Email
-	// }
-	// if newUser.Fullname == "" {
-	// 	newUser.Fullname = oldUser.Fullname
-	// }
-
 	user, err := s.Repository.ChangeUser(newUser, nickname)
 
 	if err != nil {

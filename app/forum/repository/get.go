@@ -118,13 +118,6 @@ func (r *Repository) GetThreads(params map[string]interface{}) ([]Thread, error)
 	return threads, nil
 }
 
-// query := fmt.Sprintf(
-// 	`select "user".* from "user"
-// 			 join forum_user on nickname = forum_user.user
-// 			where forum = $1 %s order by nickname %s %s`,
-// 	sinceFilter, r.getOrder(desc), r.getLimit(limit),
-// )
-
 func (r *Repository) GetUsers(params map[string]interface{}) ([]User, error) {
 	users := []User{}
 
@@ -231,4 +224,39 @@ func (r *Repository) GetUserByEmail(email string) (User, error) {
 	}
 
 	return user, nil
+}
+
+func (r *Repository) GetPosts(threadID int64, limit int64, since string, sort string, desc bool) ([]Post, error) {
+	posts := make([]Post, 0)
+
+	query, params, err := createPostsQuery(threadID, limit, since, sort, desc)
+	if err != nil {
+		return posts, err
+	}
+
+	rows, err := r.DbConn.Query(query, params...)
+	if err != nil {
+		return posts, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var post Post
+		var parent pgtype.Int8
+
+		err := rows.Scan(&post.Author, &post.Forum, &post.Created, &post.ID, &post.IsEdited,
+			&post.Message, &parent, &post.Thread)
+		post.Parent = parent.Int
+		if err != nil {
+			return posts, err
+		}
+
+		if post.Parent == post.ID {
+			post.Parent = 0
+		}
+
+		posts = append(posts, post)
+	}
+
+	return posts, nil
 }

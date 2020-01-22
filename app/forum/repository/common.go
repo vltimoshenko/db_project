@@ -10,13 +10,6 @@ type Repository struct {
 	DbConn *sqlx.DB
 }
 
-func (Rep *Repository) Disconn() {
-	if Rep.DbConn != nil {
-		Rep.DbConn.Close()
-		Rep.DbConn = nil
-	}
-}
-
 func (r *Repository) ClearDB() error {
 	_, err := r.DbConn.Exec(sql_queries.Clear)
 	return err
