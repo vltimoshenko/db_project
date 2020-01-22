@@ -13,69 +13,6 @@ import (
 	"github.com/db_project/pkg/sql_queries"
 )
 
-// func (r *Repository) CreatePosts(posts []NewPost, threadID int, forum string) ([]Post, error) {
-// 	tx, _ := r.DbConn.Begin()
-
-// 	created := time.Now().Format(time.RFC3339)
-// 	returnPosts := []Post{}
-
-// 	_, err := r.GetThreadByID(threadID)
-// 	if err != nil {
-// 		return []Post{}, fmt.Errorf(messages.ThreadDoesNotExist)
-// 	}
-
-// 	// for _, post := range posts {
-// 	// 	lastID, err := r.createPost(tx, post, threadID, forum, created)
-// 	// 	if err != nil {
-// 	// 		tx.Rollback()
-// 	// 		return []Post{}, err
-// 	// 	}
-
-// 	// 	returnPost := Post{
-// 	// 		Author:   post.Author,
-// 	// 		Created:  created,
-// 	// 		Forum:    forum,
-// 	// 		ID:       lastID,
-// 	// 		IsEdited: false,
-// 	// 		Message:  post.Message,
-// 	// 		Parent:   post.Parent,
-// 	// 		Thread:   threadID,
-// 	// 	}
-// 	// 	returnPosts = append(returnPosts, returnPost)
-// 	// }
-
-// 	tx.Commit()
-// 	return returnPosts, nil
-// }
-
-func (r *Repository) createPost(tx *sql.Tx, post NewPost, threadID int, forum string, created string) (int64, error) {
-	var lastID int64
-	var err error
-	if post.Parent == 0 {
-		stmt, _ := tx.Prepare(sql_queries.InsertPostWithoutParent)
-		defer stmt.Close()
-
-		err = stmt.QueryRow(post.Author, post.Message, threadID, forum, created).Scan(&lastID)
-	} else {
-		stmt, _ := tx.Prepare(sql_queries.InsertPost)
-		defer stmt.Close()
-
-		err = stmt.QueryRow(post.Author, post.Message, post.Parent, threadID, forum, created).Scan(&lastID)
-	}
-
-	if err != nil {
-		fmt.Printf("createPost %s", err.Error())
-		_, err = r.GetUserByNickname(post.Author)
-		if err != nil {
-			return lastID, fmt.Errorf(messages.UserNotFound)
-		} else {
-			return lastID, fmt.Errorf(messages.ParentInAnotherThread)
-		}
-	}
-
-	return lastID, nil
-}
-
 func (r *Repository) CreateVote(vote Vote, slugOrID string) error {
 	threadID, err := strconv.Atoi(slugOrID)
 	if err != nil {
@@ -153,7 +90,7 @@ func (r *Repository) CreatePosts(posts []Post, threadID int64, forum string) ([]
 	// 	return posts, structs.InternalError{E: structs.ErrorNoThread, Explain: err.Error()}
 	// }
 
-	userList := make(map[string]bool)
+	// userList := make(map[string]bool)
 	postPacketSize := 50
 	created := time.Now().Format(time.RFC3339)
 
@@ -166,7 +103,7 @@ func (r *Repository) CreatePosts(posts []Post, threadID int64, forum string) ([]
 
 		for j, post := range currentPacket {
 			posts[i+j] = post
-			userList[post.Author] = true
+			// userList[post.Author] = true
 		}
 	}
 
@@ -246,14 +183,6 @@ func (r *Repository) createPostsByPacket(threadId int64, forumSLug string, posts
 	}
 
 	if i == 0 && len(posts) > 0 {
-		// if row := r.DbConn.QueryRow(`SELECT count(id) from threads WHERE id=$1;`, threadId); row.Scan(&cnt) != nil || cnt == 0 {
-		// 	return posts, fmt.Errorf(messages.ThreadDoesNotExist)
-		// } else if row := r.DbConn.QueryRow(`SELECT COUNT(nickname) FROM persons WHERE nickname=$1`, posts[0].Author); row.Scan(&cnt) != nil || cnt == 0 {
-		// 	return posts, fmt.Errorf(messages.UserNotFound)
-
-		// } else {
-		// 	return posts, fmt.Errorf(messages.ParentInAnotherThread)
-		// }
 		_, err := r.GetThreadByID(int(threadId))
 		if err != nil {
 			return posts, fmt.Errorf(messages.ThreadDoesNotExist)

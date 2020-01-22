@@ -151,21 +151,25 @@ CREATE TRIGGER update_thread_vote AFTER INSERT OR UPDATE ON votes
 
 ----------------------------------------------------------------
 CREATE UNIQUE INDEX idx_persons_nickname ON persons(lower(nickname));
+CREATE INDEX IF NOT EXISTS idx_persons_email ON persons(lower(email));
+
 CREATE UNIQUE INDEX idx_forums_slug ON forums(lower(slug));
 
 CREATE INDEX IF NOT EXISTS idx_posts_thread ON posts(thread);
 CREATE INDEX IF NOT EXISTS idx_posts_id_thread ON posts(id, thread);
-CREATE INDEX IF NOT EXISTS idx_posts_forum_author ON posts(forum, author);
+CREATE INDEX IF NOT EXISTS idx_posts_forum_author ON posts(lower(forum), lower(author));
 CREATE INDEX IF NOT EXISTS idx_posts_author ON posts(lower(author));
 CREATE INDEX IF NOT EXISTS idx_post_path_first ON posts((path[1]));
 CREATE INDEX IF NOT EXISTS idx_post_parent_thread_path_id ON posts(thread, (path[1]), id) WHERE parent IS NUll;
 
+CREATE INDEX IF NOT EXISTS idx_threads_id ON threads(id); --primary key
 CREATE UNIQUE INDEX idx_threads_slug ON threads(lower(slug));
 CREATE INDEX IF NOT EXISTS idx_threads_author ON threads(lower(author));
-CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(forum);
+-- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(lower(forum));
+-- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(forum);
 CREATE INDEX IF NOT EXISTS idx_threads_forum_created ON threads(lower(forum), created);
 
-CREATE INDEX IF NOT EXISTS idx_votes_coverage ON votes(thread, lower(nickname), voice);
+CREATE INDEX IF NOT EXISTS idx_votes_coverage ON votes(thread, lower(nickname), voice); --
 
 
 -- create unique index forum_users_idx ON UsersInForum(forum, nickname);
@@ -176,7 +180,6 @@ CREATE INDEX IF NOT EXISTS idx_votes_coverage ON votes(thread, lower(nickname), 
 -- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(lower(forum));
 -- CREATE UNIQUE INDEX idx_persons_nickname ON persons(lower(email));
 -- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(id); --primary key
--- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(lower(forum));
 
 -- CREATE INDEX idx_forums_slug ON forums(lower(slug));
 -- CREATE UNIQUE INDEX idx_persons_nickname ON persons(lower(nickname));
@@ -190,3 +193,4 @@ CREATE INDEX IF NOT EXISTS idx_votes_coverage ON votes(thread, lower(nickname), 
 -- 	-- check loweer for update
 -- 	SelectVoteByThreadSlug = "SELECT nickname, voice FROM votes WHERE nickname = $1 AND thread = (SELECT id FROM threads WHERE slug = $2);"
 -- --lower 
+--------------------------------------------------------------------
