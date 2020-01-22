@@ -1,6 +1,7 @@
 package server
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,7 +9,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/stdlib"
-	"github.com/jmoiron/sqlx"
 
 	// "github.com/valyala/fasthttp"
 	// "github.com/valyala/fasthttp/fasthttpadaptor"
@@ -83,28 +83,6 @@ func RunServer() {
 	log.Fatal(http.ListenAndServe(config.HostAddress, router))
 }
 
-func OpenSqlxViaPgxConnPool(psqURI string) (*sqlx.DB, error) {
-	conf, err := pgx.ParseURI(psqURI)
-	if err != nil {
-		return nil, err
-	}
-
-	connPool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
-		ConnConfig:     conf,
-		MaxConnections: config.MaxConn,
-	})
-
-	if err != nil {
-		log.Println(err.Error())
-		log.Fatal("Failed to create connections pool")
-	}
-
-	nativeDB := stdlib.OpenDBFromPool(connPool)
-
-	fmt.Println("OpenSqlxViaPgxConnPool: the connection was created")
-	return sqlx.NewDb(nativeDB, "pgx"), nil
-}
-
 // func OpenSqlxViaPgxConnPool(psqURI string) (*sqlx.DB, error) {
 // 	conf, err := pgx.ParseURI(psqURI)
 // 	if err != nil {
@@ -127,3 +105,26 @@ func OpenSqlxViaPgxConnPool(psqURI string) (*sqlx.DB, error) {
 // 	// return sqlx.NewDb(nativeDB, "pgx"), nil
 // 	return nativeDB
 // }
+
+func OpenSqlxViaPgxConnPool(psqURI string) (*sql.DB, error) {
+	conf, err := pgx.ParseURI(psqURI)
+	if err != nil {
+		return nil, err
+	}
+
+	connPool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
+		ConnConfig: conf,
+		// MaxConnections: config.MaxConn,
+	})
+
+	if err != nil {
+		log.Println(err.Error())
+		log.Fatal("Failed to create connections pool")
+	}
+
+	nativeDB := stdlib.OpenDBFromPool(connPool)
+
+	fmt.Println("OpenSqlxViaPgxConnPool: the connection was created")
+	// return sqlx.NewDb(nativeDB, "pgx"), nil
+	return nativeDB, nil
+}

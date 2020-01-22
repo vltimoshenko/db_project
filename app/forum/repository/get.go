@@ -11,7 +11,7 @@ import (
 )
 
 func (r *Repository) GetThreadByID(id int64) (Thread, error) {
-	row := r.DbConn.QueryRowx(sql_queries.SelectThreadByID, id)
+	row := r.DbConn.QueryRow(sql_queries.SelectThreadByID, id)
 
 	// thread := Thread{}
 	// // var timetz time.Time
@@ -37,7 +37,7 @@ func (r *Repository) GetThreadByID(id int64) (Thread, error) {
 }
 
 func (r *Repository) GetThreadBySlug(threadSlug string) (Thread, error) {
-	row := r.DbConn.QueryRowx(sql_queries.SelectThreadBySlug, threadSlug)
+	row := r.DbConn.QueryRow(sql_queries.SelectThreadBySlug, threadSlug)
 
 	// var thread Thread
 	// err := row.StructScan(&thread)
@@ -59,7 +59,7 @@ func (r *Repository) GetThreadBySlug(threadSlug string) (Thread, error) {
 }
 
 func (r *Repository) GetPostByID(ID int64) (Post, error) {
-	row := r.DbConn.QueryRowx(sql_queries.SelectPostByID, ID)
+	row := r.DbConn.QueryRow(sql_queries.SelectPostByID, ID)
 	var parent pgtype.Int8
 
 	var post Post
@@ -91,9 +91,9 @@ func (r *Repository) GetThreads(params map[string]interface{}) ([]Thread, error)
 		return threads, err
 	}
 
-	query = r.DbConn.Rebind(query)
+	// query = r.DbConn.Rebind(query)  //careful
 
-	rows, err := r.DbConn.Queryx(query, args...)
+	rows, err := r.DbConn.Query(query, args...)
 
 	if err != nil {
 		log.Print(err)
@@ -142,9 +142,9 @@ func (r *Repository) GetUsers(params map[string]interface{}) ([]User, error) {
 		return users, err
 	}
 
-	query = r.DbConn.Rebind(query)
+	// query = r.DbConn.Rebind(query)
 
-	rows, err := r.DbConn.Queryx(query, args...)
+	rows, err := r.DbConn.Query(query, args...)
 
 	if err != nil {
 		fmt.Printf("GetUsers: %s\n", err.Error())
@@ -155,7 +155,7 @@ func (r *Repository) GetUsers(params map[string]interface{}) ([]User, error) {
 	for rows.Next() {
 		var user User
 
-		err = rows.StructScan(&user)
+		err = rows.Scan(&user.About, &user.Email, &user.Fullname, &user.Nickname)
 		if err != nil {
 			fmt.Printf("GetUsers: %s\n", err)
 			return users, err
@@ -167,10 +167,10 @@ func (r *Repository) GetUsers(params map[string]interface{}) ([]User, error) {
 }
 
 func (r *Repository) GetForumBySlug(slug string) (Forum, error) {
-	row := r.DbConn.QueryRowx(sql_queries.SelectForumBySlug, slug)
+	row := r.DbConn.QueryRow(sql_queries.SelectForumBySlug, slug)
 
 	var forum Forum
-	err := row.StructScan(&forum)
+	err := row.Scan(&forum.Posts, &forum.Slug, &forum.Thread, &forum.Title, &forum.User)
 	if err != nil {
 		fmt.Println(err)
 		return forum, err
@@ -180,10 +180,10 @@ func (r *Repository) GetForumBySlug(slug string) (Forum, error) {
 }
 
 func (r *Repository) GetVoteByThreadID(nickname string, thread int64) (Vote, error) {
-	row := r.DbConn.QueryRowx(sql_queries.SelectVoteByThreadID, nickname, thread)
+	row := r.DbConn.QueryRow(sql_queries.SelectVoteByThreadID, nickname, thread)
 
 	var vote Vote
-	err := row.StructScan(&vote)
+	err := row.Scan(&vote.Nickname, &vote.Voice)
 	if err != nil {
 		fmt.Println(err)
 		return vote, err //fmt.Errorf()
@@ -193,10 +193,11 @@ func (r *Repository) GetVoteByThreadID(nickname string, thread int64) (Vote, err
 }
 
 func (r *Repository) GetVoteByThreadSlug(nickname string, slug string) (Vote, error) {
-	row := r.DbConn.QueryRowx(sql_queries.SelectVoteByThreadSlug, nickname, slug)
+	row := r.DbConn.QueryRow(sql_queries.SelectVoteByThreadSlug, nickname, slug)
 
 	var vote Vote
-	err := row.StructScan(&vote)
+
+	err := row.Scan(&vote.Nickname, &vote.Voice)
 	if err != nil {
 		fmt.Println(err)
 		return vote, err //fmt.Errorf()
@@ -207,10 +208,10 @@ func (r *Repository) GetVoteByThreadSlug(nickname string, slug string) (Vote, er
 
 func (r *Repository) GetUserByNickname(nickname string) (User, error) {
 
-	row := r.DbConn.QueryRowx(sql_queries.SelectUserByNickname, nickname)
+	row := r.DbConn.QueryRow(sql_queries.SelectUserByNickname, nickname)
 
 	var user User
-	err := row.StructScan(&user)
+	err := row.Scan(&user.About, &user.Email, &user.Fullname, &user.Nickname)
 	if err != nil {
 		fmt.Printf("Repository GetUserByNickname: %s\n", err)
 		return user, err
@@ -221,10 +222,10 @@ func (r *Repository) GetUserByNickname(nickname string) (User, error) {
 
 func (r *Repository) GetUserByEmail(email string) (User, error) {
 
-	row := r.DbConn.QueryRowx(sql_queries.SelectUserByEmail, email)
+	row := r.DbConn.QueryRow(sql_queries.SelectUserByEmail, email)
 
 	var user User
-	err := row.StructScan(&user)
+	err := row.Scan(&user.About, &user.Email, &user.Fullname, &user.Nickname)
 	if err != nil {
 		fmt.Printf("Repository GetUserByEmail: %s\n", err)
 		return user, err

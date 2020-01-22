@@ -1,13 +1,14 @@
 package repository
 
 import (
+	"database/sql"
+
 	. "github.com/db_project/pkg/models"
 	"github.com/db_project/pkg/sql_queries"
-	"github.com/jmoiron/sqlx"
 )
 
 type Repository struct {
-	DbConn *sqlx.DB
+	DbConn *sql.DB
 	// DbConn *sql.DB
 }
 
@@ -24,10 +25,9 @@ func (r *Repository) ClearDB() error {
 }
 
 func (r *Repository) GetStatus() (Status, error) {
-	row := r.DbConn.QueryRowx(sql_queries.SelectDBStatus)
-
+	row := r.DbConn.QueryRow(sql_queries.SelectDBStatus)
 	var status Status
-	_ = row.StructScan(&status)
+	_ = row.Scan(&status.Post, &status.Thread, &status.User, &status.Forum)
 	// if err != nil {
 	// 	fmt.Println(err)
 	// }
