@@ -1,15 +1,13 @@
 package repository
 
 import (
-	"database/sql"
-
 	. "github.com/db_project/pkg/models"
 	"github.com/db_project/pkg/sql_queries"
+	"github.com/jmoiron/sqlx"
 )
 
 type Repository struct {
-	DbConn *sql.DB
-	// DbConn *sql.DB
+	DbConn *sqlx.DB
 }
 
 func (Rep *Repository) Disconn() {

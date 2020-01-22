@@ -19,6 +19,7 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/jackc/pgtype v1.1.0
 	github.com/jackc/pgx v3.6.0+incompatible
+	github.com/jackc/pgx/v4 v4.0.0-pre1.0.20190824185557-6972a5742186
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect

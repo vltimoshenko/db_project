@@ -1,14 +1,13 @@
 package server
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/stdlib"
+	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/jmoiron/sqlx"
 
 	// "github.com/valyala/fasthttp"
 	// "github.com/valyala/fasthttp/fasthttpadaptor"
@@ -24,7 +23,7 @@ import (
 func NewRouter() (*mux.Router, error) {
 	router := mux.NewRouter()
 
-	DBConn, err := OpenSqlxViaPgxConnPool(config.DBPath)
+	DBConn, err := OpenSqlxViaPgxConnPool()
 	if err != nil {
 		return nil, err
 	}
@@ -79,52 +78,19 @@ func RunServer() {
 		log.Println(err.Error())
 		log.Fatal("Failed to create router")
 	}
-	// log.Fatal(fasthttp.ListenAndServe(config.HostAddress, fasthttpadaptor.NewFastHTTPHandler(router)))
 	log.Fatal(http.ListenAndServe(config.HostAddress, router))
 }
 
-// func OpenSqlxViaPgxConnPool(psqURI string) (*sqlx.DB, error) {
-// 	conf, err := pgx.ParseURI(psqURI)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	connPool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
-// 		ConnConfig: conf,
-// 		// MaxConnections: config.MaxConn,
-// 	})
-
-// 	if err != nil {
-// 		log.Println(err.Error())
-// 		log.Fatal("Failed to create connections pool")
-// 	}
-
-// 	nativeDB := stdlib.OpenDBFromPool(connPool)
-
-// 	fmt.Println("OpenSqlxViaPgxConnPool: the connection was created")
-// 	// return sqlx.NewDb(nativeDB, "pgx"), nil
-// 	return nativeDB
-// }
-
-func OpenSqlxViaPgxConnPool(psqURI string) (*sql.DB, error) {
-	conf, err := pgx.ParseURI(psqURI)
+func OpenSqlxViaPgxConnPool() (*sqlx.DB, error) {
+	db, err := sqlx.Open("pgx", os.Getenv("POSTGRES_DSN"))
 	if err != nil {
 		return nil, err
 	}
-
-	connPool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
-		ConnConfig: conf,
-		// MaxConnections: config.MaxConn,
-	})
-
+	db.SetMaxOpenConns(8)
+	db.SetMaxIdleConns(8)
+	err = db.Ping()
 	if err != nil {
-		log.Println(err.Error())
-		log.Fatal("Failed to create connections pool")
+		return nil, err
 	}
-
-	nativeDB := stdlib.OpenDBFromPool(connPool)
-
-	fmt.Println("OpenSqlxViaPgxConnPool: the connection was created")
-	// return sqlx.NewDb(nativeDB, "pgx"), nil
-	return nativeDB, nil
+	return db, nil
 }
