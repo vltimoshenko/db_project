@@ -9,7 +9,7 @@ import (
 
 func (r *Repository) ChangeThread(threadUpdate ThreadUpdate, threadID int64) error {
 
-	_ = r.DbConn.QueryRow(sql_queries.UpdateThreadByID, threadUpdate.Message,
+	_, _ = r.DbConn.Exec(sql_queries.UpdateThreadByID, threadUpdate.Message,
 		threadUpdate.Title, threadID) //should read id?
 
 	// if err != nil {

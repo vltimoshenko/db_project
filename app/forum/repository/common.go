@@ -8,7 +8,6 @@ import (
 
 type Repository struct {
 	DbConn *sqlx.DB
-	// DbConn *sql.DB
 }
 
 func (Rep *Repository) Disconn() {
