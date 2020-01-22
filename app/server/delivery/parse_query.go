@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"net/url"
+	"strconv"
 	// . "github.com/db_project/pkg/models"
 )
 
@@ -9,7 +10,7 @@ func (h *Handler) ParseThreadsAndUsersQuery(query url.Values) map[string]interfa
 	params := make(map[string]interface{})
 
 	if query.Get("limit") != "" {
-		params["limit"] = query.Get("limit")
+		params["limit"], _ = strconv.Atoi(query.Get("limit"))
 	}
 
 	if query.Get("desc") == "true" {

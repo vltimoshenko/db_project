@@ -149,6 +149,36 @@ DROP TRIGGER IF EXISTS update_thread_vote ON votes;
 CREATE TRIGGER update_thread_vote AFTER INSERT OR UPDATE ON votes
     FOR EACH ROW EXECUTE PROCEDURE update_thread_votes_counter();
 
+CREATE UNLOGGED TABLE forum_users (
+    forum text not null,
+    person text not null
+);
+create unique index on forum_users(forum, person); --reverse
+
+
+CREATE OR REPLACE FUNCTION  add_user_to_forum() returns trigger as
+$BODY$
+begin
+    insert into forum_users(forum, person) values (NEW.forum, NEW.author) on conflict do nothing;
+    return NEW;
+end;
+$BODY$
+language plpgsql;
+-- IMMUTABLE; --
+
+
+create trigger forum_user_after_post
+    after insert
+    on posts
+    for each row
+execute procedure add_user_to_forum();
+
+create trigger forum_user_after_thread
+    after insert
+    on threads
+    for each row
+execute procedure add_user_to_forum();
+
 ----------------------------------------------------------------
 CREATE UNIQUE INDEX idx_persons_nickname ON persons(lower(nickname));
 CREATE INDEX IF NOT EXISTS idx_persons_email ON persons(lower(email));
@@ -167,9 +197,9 @@ CREATE UNIQUE INDEX idx_threads_slug ON threads(lower(slug));
 CREATE INDEX IF NOT EXISTS idx_threads_author ON threads(lower(author));
 -- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(lower(forum));
 -- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(forum);
-CREATE INDEX IF NOT EXISTS idx_threads_forum_created ON threads(lower(forum), created);
+CREATE INDEX IF NOT EXISTS idx_threads_forum_created ON threads(lower(forum), created); --+
 
-CREATE INDEX IF NOT EXISTS idx_votes_coverage ON votes(thread, lower(nickname), voice); --
+CREATE INDEX IF NOT EXISTS idx_votes_coverage ON votes(thread, lower(nickname)) INCLUDE (voice); --+
 
 
 -- create unique index forum_users_idx ON UsersInForum(forum, nickname);

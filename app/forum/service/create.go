@@ -33,11 +33,13 @@ func (s Service) CreatePosts(body io.ReadCloser, slugOrId string) ([]Post, error
 		thread, err = s.Repository.GetThreadByID(threadID)
 	}
 	if err != nil {
+		fmt.Printf("Service CreatePosts: %s\n", err.Error())
 		return []Post{}, errors.New(messages.ThreadDoesNotExist)
 	}
 
-	returnPosts, err := s.Repository.CreatePosts(posts, int64(thread.ID), thread.Forum)
+	returnPosts, err := s.Repository.CreatePosts(posts, int64(thread.ID), thread.Forum) //turn into int64
 	if err != nil {
+		fmt.Printf("Service CreatePosts: %s\n", err.Error())
 		return returnPosts, err
 	}
 	return returnPosts, err

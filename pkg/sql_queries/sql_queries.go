@@ -14,7 +14,7 @@ const (
 	// 	"VALUES ($1,$2,$3,$4,$5) RETURNING id;"
 	InsertVoteByThreadID   = "INSERT INTO votes (nickname, voice, thread)VALUES($1,$2,$3);"
 	InsertVoteByThreadSlug = "INSERT INTO votes (nickname, voice, thread)VALUES" +
-		"($1,$2,(SELECT id FROM threads WHERE slug = $3));"
+		"($1,$2,(SELECT id FROM threads WHERE lower(slug) = lower($3)));"
 
 	SelectForumBySlug = `SELECT f.posts, f.slug, f.threads, f.title, f.person
 		FROM forums as f WHERE lower(f.slug) = lower($1);`
@@ -41,14 +41,8 @@ const (
 
 	SelectUsersWithParams = "SELECT p.about, p.email, p.fullname, p.nickname " +
 		`FROM persons as p ` +
-		"WHERE p.nickname IN ( " +
-		"SELECT t.author AS nickname " +
-		"FROM threads as t " +
-		"WHERE lower(t.forum) = lower($1) " +
-		"UNION " +
-		"SELECT pos.author AS nickname " +
-		"FROM posts as pos " +
-		"WHERE lower(pos.forum) = lower(:forum) ) "
+		`JOIN forum_users ON p.nickname = forum_users.person ` +
+		`WHERE lower(forum_users.forum) = lower(:forum) `
 
 	SelectDBStatus = "SELECT " +
 		"(SELECT COALESCE(SUM(posts), 0) FROM forums WHERE posts > 0) AS posts, " +
@@ -57,16 +51,4 @@ const (
 		"(SELECT COUNT(*) FROM forums) AS forums;"
 
 	Clear = "TRUNCATE votes, posts, threads, forums, persons RESTART IDENTITY CASCADE;"
-
-	// SELECTPostsFlat = "SELECT p.author, p.created, p.forum, p.id, p.is_edited, p.message, p.parent, p.thread " +
-	// 	"FROM posts as p WHERE p.thread = $1 AND p.id > $3 ORDER BY p.id LIMIT $2"
-	// SELECTPostsFlatDesc = "SELECT p.author, p.created, p.forum, p.id, p.is_edited, p.message, p.parent, p.thread " +
-	// 	"FROM posts as p WHERE p.thread = $1 AND p.id < $3 ORDER BY p.id DESC LIMIT $2"
-
-	// SelectPostsFlat = "SELECT p.author, p.created, p.forum, p.id, p.is_edited, p.message, p.parent, p.thread " +
-	// 	"FROM posts as p WHERE p.thread = $1 "
-
-	//AND p.id > $3 ORDER BY p.id LIMIT $2"
-
-	////////////////////////////////////////////////////////////////
 )

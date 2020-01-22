@@ -163,6 +163,13 @@ func (r *Repository) GetThreads(params map[string]interface{}) ([]Thread, error)
 	return threads, nil
 }
 
+// query := fmt.Sprintf(
+// 	`select "user".* from "user"
+// 			 join forum_user on nickname = forum_user.user
+// 			where forum = $1 %s order by nickname %s %s`,
+// 	sinceFilter, r.getOrder(desc), r.getLimit(limit),
+// )
+
 func (r *Repository) GetUsers(params map[string]interface{}) ([]User, error) {
 	users := []User{}
 
@@ -170,13 +177,13 @@ func (r *Repository) GetUsers(params map[string]interface{}) ([]User, error) {
 
 	query, args, err := sqlx.Named(queryStr, params)
 	if err != nil {
-		// log.Print(err)
+		fmt.Printf("GetUsers: %s\n", err.Error())
 		return users, err
 	}
 
 	query, args, err = sqlx.In(query, args...)
 	if err != nil {
-		// log.Print(err)
+		fmt.Printf("GetUsers: %s\n", err.Error())
 		return users, err
 	}
 
@@ -185,7 +192,7 @@ func (r *Repository) GetUsers(params map[string]interface{}) ([]User, error) {
 	rows, err := r.DbConn.Queryx(query, args...)
 
 	if err != nil {
-		// log.Print(err)
+		fmt.Printf("GetUsers: %s\n", err.Error())
 		return users, err
 	}
 	defer rows.Close()
@@ -195,7 +202,7 @@ func (r *Repository) GetUsers(params map[string]interface{}) ([]User, error) {
 
 		err = rows.StructScan(&user)
 		if err != nil {
-			// log.Printf("GetUsers: %s\n", err)
+			fmt.Printf("GetUsers: %s\n", err)
 			return users, err
 		}
 

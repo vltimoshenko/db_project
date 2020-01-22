@@ -10,6 +10,9 @@ import (
 	"github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 
+	// "github.com/valyala/fasthttp"
+	// "github.com/valyala/fasthttp/fasthttpadaptor"
+
 	"github.com/db_project/app/forum/repository"
 	"github.com/db_project/app/forum/service"
 	"github.com/db_project/app/server/delivery"
@@ -75,6 +78,7 @@ func RunServer() {
 		log.Println(err.Error())
 		log.Fatal("Failed to create router")
 	}
+	// log.Fatal(fasthttp.ListenAndServe(config.HostAddress, fasthttpadaptor.NewFastHTTPHandler(router)))
 	log.Fatal(http.ListenAndServe(config.HostAddress, router))
 }
 

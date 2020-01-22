@@ -91,6 +91,9 @@ func (r *Repository) CreatePosts(posts []Post, threadID int64, forum string) ([]
 	// }
 
 	// userList := make(map[string]bool)
+	if len(posts) == 0 {
+		return posts, nil
+	}
 	postPacketSize := 50
 	created := time.Now().Format(time.RFC3339)
 
@@ -98,6 +101,7 @@ func (r *Repository) CreatePosts(posts []Post, threadID int64, forum string) ([]
 		currentPacket := posts[i:int(math.Min(float64(i+postPacketSize), float64(len(posts))))]
 		currentPacket, err := r.createPostsByPacket(threadID, forum, currentPacket, created)
 		if err != nil {
+			fmt.Printf("Rep CreatePosts: %s\n", err.Error())
 			return posts, err
 		}
 
@@ -152,7 +156,7 @@ func (r *Repository) createPostsByPacket(threadId int64, forumSLug string, posts
 	rows, err := r.DbConn.Query(query, params...)
 	fmt.Println("createPostsByPacket: QueryComplete")
 
-	if err != nil {
+	if err != nil || (rows != nil && rows.Err() != nil) {
 		fmt.Printf("createPostsByPacket: %s\n", err.Error())
 		if strings.Contains(err.Error(), "post_parent_constraint") {
 			return posts, fmt.Errorf(messages.ParentInAnotherThread)
@@ -162,11 +166,6 @@ func (r *Repository) createPostsByPacket(threadId int64, forumSLug string, posts
 	}
 
 	defer rows.Close()
-
-	// if err != nil || (rows != nil && rows.Err() != nil) {
-	// 	fmt.Printf("createPostsByPacket: %s\n", rows.Err())
-	// 	return posts, err
-	// }
 
 	i := 0
 	for rows.Next() {
@@ -182,17 +181,32 @@ func (r *Repository) createPostsByPacket(threadId int64, forumSLug string, posts
 		i++
 	}
 
-	if i == 0 && len(posts) > 0 {
-		_, err := r.GetThreadByID(int(threadId))
-		if err != nil {
-			return posts, fmt.Errorf(messages.ThreadDoesNotExist)
-		}
+	// if i == 0 && len(posts) > 0 {
+	// 	_, err := r.GetThreadByID(int(threadId))
+	// 	if err != nil {
+	// 		fmt.Println("createPostsByPacket: i == 0 && len(posts) > 0")
+	// 		return posts, fmt.Errorf(messages.ThreadDoesNotExist)
+	// 	}
 
-		_, err = r.GetUserByNickname(posts[0].Author)
-		if err != nil {
+	// 	_, err = r.GetUserByNickname(posts[0].Author)
+	// 	if err != nil {
+	// 		fmt.Printf("createPostsByPacket: %s\n", err.Error())
+	// 		return posts, fmt.Errorf(messages.UserNotFound)
+	// 	}
+	// 	return posts, fmt.Errorf(messages.ParentInAnotherThread)
+	// }
+	var cnt int64
+	if i == 0 && len(posts) > 0 {
+		fmt.Println("createPostsByPacket: i == 0 && len(posts) > 0")
+		if row := r.DbConn.QueryRow(`SELECT count(id) from threads WHERE id=$1;`, threadId); row.Scan(&cnt) != nil || cnt == 0 {
+			// fmt.Printf("createPostsByPacket: %s\n", err.Error())
 			return posts, fmt.Errorf(messages.UserNotFound)
+		} else if row := r.DbConn.QueryRow(`SELECT COUNT(nickname) FROM persons WHERE nickname=$1`, posts[0].Author); row.Scan(&cnt) != nil || cnt == 0 {
+			// fmt.Printf("createPostsByPacket: %s\n", err.Error())
+			return posts, fmt.Errorf(messages.UserNotFound)
+		} else {
+			return posts, fmt.Errorf(messages.ParentInAnotherThread)
 		}
-		return posts, fmt.Errorf(messages.ParentInAnotherThread)
 	}
 	return posts, nil
 }
