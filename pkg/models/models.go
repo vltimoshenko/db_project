@@ -9,7 +9,7 @@ type NewForum struct {
 type Forum struct {
 	Posts  int    `json:"posts"   db:"posts"`
 	Slug   string `json:"slug"    db:"slug"`
-	Thread int    `json:"threads" db:"threads"`
+	Thread int64  `json:"threads" db:"threads"`
 	Title  string `json:"title"   db:"title"`
 	User   string `json:"user"    db:"person"`
 }
@@ -32,7 +32,7 @@ type Post struct {
 	IsEdited bool   `json:"isEdited"  db:"is_edited"`
 	Message  string `json:"message"    db:"message"`
 	Parent   int64  `json:"parent"     db:"parent"`
-	Thread   int    `json:"thread"     db:"thread"`
+	Thread   int64  `json:"thread"     db:"thread"`
 }
 
 type NewThread struct {
@@ -52,7 +52,7 @@ type Thread struct {
 	Author  string `json:"author"`
 	Created string `json:"created"`
 	Forum   string `json:"forum"`
-	ID      int    `json:"id"`
+	ID      int64  `json:"id"`
 	Message string `json:"message"`
 	Slug    string `json:"slug"`
 	Title   string `json:"title"`

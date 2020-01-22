@@ -2,8 +2,7 @@ package repository
 
 import (
 	"fmt"
-	"time"
-
+"log"
 	"github.com/db_project/pkg/messages"
 	. "github.com/db_project/pkg/models"
 	"github.com/db_project/pkg/sql_queries"
@@ -11,51 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func (r *Repository) GetThreadsBySlug(slug string) ([]Thread, error) {
-	threads := []Thread{}
-
-	rows, err := r.DbConn.Queryx(sql_queries.SelectThreadBySlug, slug)
-	if err != nil {
-		return threads, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		thread := Thread{}
-		var timetz time.Time
-		err := rows.Scan(&thread)
-		if err != nil {
-			return threads, err
-		}
-		thread.Created = timetz.Format(time.RFC3339Nano)
-		threads = append(threads, thread)
-	}
-	return threads, nil
-}
-
-func (r *Repository) GetThreadsByID(id int) ([]Thread, error) {
-	threads := []Thread{}
-
-	rows, err := r.DbConn.Queryx(sql_queries.SelectThreadByID, id)
-	if err != nil {
-		return threads, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		thread := Thread{}
-		// var timetz time.Time
-		err := rows.Scan(&thread)
-		if err != nil {
-			return threads, err
-		}
-		// thread.Created = timetz.Format(time.RFC3339Nano)
-		threads = append(threads, thread)
-	}
-	return threads, nil
-}
-
-func (r *Repository) GetThreadByID(id int) (Thread, error) {
+func (r *Repository) GetThreadByID(id int64) (Thread, error) {
 	row := r.DbConn.QueryRowx(sql_queries.SelectThreadByID, id)
 
 	// thread := Thread{}
@@ -75,7 +30,7 @@ func (r *Repository) GetThreadByID(id int) (Thread, error) {
 		&slug, &thread.Title, &thread.Votes)
 	thread.Slug = slug.String
 	if err != nil {
-		// fmt.Println(err)
+		fmt.Println(err)
 		return thread, fmt.Errorf(messages.ThreadDoesNotExist)
 	}
 	return thread, err
@@ -97,7 +52,7 @@ func (r *Repository) GetThreadBySlug(threadSlug string) (Thread, error) {
 		&slug, &thread.Title, &thread.Votes)
 	thread.Slug = slug.String
 	if err != nil {
-		// fmt.Println(err)
+		fmt.Println(err)
 		return thread, fmt.Errorf(messages.ThreadDoesNotExist)
 	}
 	return thread, err
@@ -112,7 +67,7 @@ func (r *Repository) GetPostByID(ID int64) (Post, error) {
 		&post.Message, &parent, &post.Thread)
 	post.Parent = parent.Int
 	if err != nil {
-		// fmt.Println(err)
+		fmt.Println(err)
 		return post, fmt.Errorf(messages.PostDoesNotExist)
 	}
 
@@ -126,13 +81,13 @@ func (r *Repository) GetThreads(params map[string]interface{}) ([]Thread, error)
 
 	query, args, err := sqlx.Named(queryStr, params)
 	if err != nil {
-		// log.Print(err)
+		log.Print(err)
 		return threads, err
 	}
 
 	query, args, err = sqlx.In(query, args...)
 	if err != nil {
-		// log.Print(err)
+		log.Print(err)
 		return threads, err
 	}
 
@@ -141,7 +96,7 @@ func (r *Repository) GetThreads(params map[string]interface{}) ([]Thread, error)
 	rows, err := r.DbConn.Queryx(query, args...)
 
 	if err != nil {
-		// log.Print(err)
+		log.Print(err)
 		return threads, err
 	}
 	defer rows.Close()
@@ -154,7 +109,7 @@ func (r *Repository) GetThreads(params map[string]interface{}) ([]Thread, error)
 			&slug, &thread.Title, &thread.Votes)
 		thread.Slug = slug.String
 		if err != nil {
-			// fmt.Println(err)
+			fmt.Println(err)
 			return threads, fmt.Errorf(messages.ThreadDoesNotExist)
 		}
 
@@ -217,20 +172,20 @@ func (r *Repository) GetForumBySlug(slug string) (Forum, error) {
 	var forum Forum
 	err := row.StructScan(&forum)
 	if err != nil {
-		// fmt.Println(err)
+		fmt.Println(err)
 		return forum, err //fmt.Errorf()
 	}
 
 	return forum, nil
 }
 
-func (r *Repository) GetVoteByThreadID(nickname string, thread int) (Vote, error) {
+func (r *Repository) GetVoteByThreadID(nickname string, thread int64) (Vote, error) {
 	row := r.DbConn.QueryRowx(sql_queries.SelectVoteByThreadID, nickname, thread)
 
 	var vote Vote
 	err := row.StructScan(&vote)
 	if err != nil {
-		// fmt.Println(err)
+		fmt.Println(err)
 		return vote, err //fmt.Errorf()
 	}
 
@@ -243,7 +198,7 @@ func (r *Repository) GetVoteByThreadSlug(nickname string, slug string) (Vote, er
 	var vote Vote
 	err := row.StructScan(&vote)
 	if err != nil {
-		// fmt.Println(err)
+		fmt.Println(err)
 		return vote, err //fmt.Errorf()
 	}
 
@@ -257,7 +212,7 @@ func (r *Repository) GetUserByNickname(nickname string) (User, error) {
 	var user User
 	err := row.StructScan(&user)
 	if err != nil {
-		// fmt.Printf("Repository GetUserByNickname: %s\n", err)
+		fmt.Printf("Repository GetUserByNickname: %s\n", err)
 		return user, err
 	}
 
@@ -271,7 +226,7 @@ func (r *Repository) GetUserByEmail(email string) (User, error) {
 	var user User
 	err := row.StructScan(&user)
 	if err != nil {
-		// fmt.Printf("Repository GetUserByEmail: %s\n", err)
+		fmt.Printf("Repository GetUserByEmail: %s\n", err)
 		return user, err
 	}
 

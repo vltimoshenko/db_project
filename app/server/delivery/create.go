@@ -17,19 +17,23 @@ func (h *Handler) CreatePosts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	code := 201
 
-	slugOrId, _ := mux.Vars(r)["slug_or_id"]
-	// if !ok {
-	// }
+	slugOrId, ok := mux.Vars(r)["slug_or_id"]
+	if !ok {
+		w.WriteHeader(400)
+		return
+	}
 
 	forum, err := h.Service.CreatePosts(r.Body, slugOrId)
 
 	if err != nil {
 		if err.Error() == messages.ParentInAnotherThread || err.Error() == messages.ParentPostDoesNotExist {
+			fmt.Printf("Handler CreatePosts: %s", err.Error())
 			SetError(w, 409, err.Error())
 			return
 		}
 
 		if err.Error() == messages.ThreadDoesNotExist || err.Error() == messages.UserNotFound {
+			fmt.Printf("Handler CreatePosts: %s", err.Error())
 			SetError(w, 404, err.Error())
 			return
 		}

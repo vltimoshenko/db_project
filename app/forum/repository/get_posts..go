@@ -43,7 +43,7 @@ func init() {
 	}
 }
 
-func (r *Repository) GetPosts(threadID int, limit int64, since string, sort string, desc bool) ([]Post, error) {
+func (r *Repository) GetPosts(threadID int64, limit int64, since string, sort string, desc bool) ([]Post, error) {
 	mainTemplateArgs := struct {
 		Condition string
 		OrderBy   string

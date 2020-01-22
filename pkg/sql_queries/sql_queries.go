@@ -17,13 +17,13 @@ const (
 		"($1,$2,(SELECT id FROM threads WHERE lower(slug) = lower($3)));"
 
 	SelectForumBySlug = `SELECT f.posts, f.slug, f.threads, f.title, f.person
-		FROM forums as f WHERE lower(f.slug) = lower($1);`
+		FROM forums as f WHERE f.slug = $1;`
 	SelectThreadsWithParams = `SELECT t.author, t.created, t.forum, t.id, t.message, t.slug, t.title, t.votes ` +
 		`FROM threads as t WHERE lower(t.forum) = lower(:forum) `
-	SelectUserByNickname = "SELECT p.about, p.email, p.fullname, p.nickname FROM persons as p WHERE lower(p.nickname) = lower($1)"
-	SelectUserByEmail    = "SELECT p.about, p.email, p.fullname, p.nickname FROM persons as p WHERE lower(p.email) = lower($1)"
+	SelectUserByNickname = "SELECT p.about, p.email, p.fullname, p.nickname FROM persons as p WHERE p.nickname = $1"
+	SelectUserByEmail    = "SELECT p.about, p.email, p.fullname, p.nickname FROM persons as p WHERE p.email = $1"
 
-	UpdateUserByNickname   = "UPDATE persons SET about = $1, email = $2, fullname = $3 WHERE lower(nickname) = lower($4);"
+	UpdateUserByNickname   = "UPDATE persons SET about = $1, email = $2, fullname = $3 WHERE nickname = $4;"
 	UpdateThreadByID       = "UPDATE threads SET message = $1, title = $2 WHERE id = $3;"
 	UpdateThreadRating     = "UPDATE threads SET votes = votes + $1 WHERE id = $2;"
 	UpdateVoteByThreadID   = "UPDATE votes SET voice = $1 WHERE lower(nickname) = lower($2) AND thread = $3;"

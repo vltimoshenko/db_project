@@ -9,7 +9,7 @@ import (
 )
 
 func (s Service) GetThread(slugOrID string) (Thread, error) {
-	threadID, err := strconv.Atoi(slugOrID)
+	threadID, err := strconv.ParseInt(slugOrID, 10, 64)
 
 	var thread Thread
 	if err != nil {
@@ -79,7 +79,7 @@ func (s Service) GetPost(postID int64, params []string) (map[string]interface{},
 }
 
 func (s Service) GetPosts(slugOrID string, limit int64, since string, sort string, desc bool) ([]Post, error) {
-	threadID, err := strconv.Atoi(slugOrID)
+	threadID, err := strconv.ParseInt(slugOrID, 10, 64)
 
 	var thread Thread
 	if err != nil {

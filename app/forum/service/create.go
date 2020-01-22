@@ -24,7 +24,7 @@ func (s Service) CreatePosts(body io.ReadCloser, slugOrId string) ([]Post, error
 	// 	//return uuid.UUID{}, errors.New(InvalidJSONMsg)
 	// }
 
-	threadID, err := strconv.Atoi(slugOrId)
+	threadID, err := strconv.ParseInt(slugOrId, 10, 64)
 
 	var thread Thread
 	if err != nil {
@@ -37,7 +37,7 @@ func (s Service) CreatePosts(body io.ReadCloser, slugOrId string) ([]Post, error
 		return []Post{}, errors.New(messages.ThreadDoesNotExist)
 	}
 
-	returnPosts, err := s.Repository.CreatePosts(posts, int64(thread.ID), thread.Forum) //turn into int64
+	returnPosts, err := s.Repository.CreatePosts(posts, thread.ID, thread.Forum) //turn into int64
 	if err != nil {
 		fmt.Printf("Service CreatePosts: %s\n", err.Error())
 		return returnPosts, err
@@ -50,7 +50,7 @@ func (s Service) Vote(vote Vote, slugOrId string) (Thread, error) {
 	// if vote.Voice != 1 && vote.Voice != -1 {
 	// 	return Thread{}, fmt.Errorf("Invalid value")
 	// }
-	threadID, convErr := strconv.Atoi(slugOrId)
+	threadID, convErr := strconv.ParseInt(slugOrId, 10, 64)
 
 	var err error
 	if convErr != nil {

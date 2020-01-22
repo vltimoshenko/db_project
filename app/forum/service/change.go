@@ -10,7 +10,7 @@ import (
 
 func (s Service) ChangeThread(threadUpdate ThreadUpdate, slugOrId string) (Thread, error) {
 
-	threadID, err := strconv.Atoi(slugOrId)
+	threadID, err := strconv.ParseInt(slugOrId, 10, 64)
 
 	var thread Thread
 	//could be done one query

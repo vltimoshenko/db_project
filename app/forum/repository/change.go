@@ -9,7 +9,7 @@ import (
 	"github.com/db_project/pkg/sql_queries"
 )
 
-func (r *Repository) ChangeThread(threadUpdate ThreadUpdate, threadID int) error {
+func (r *Repository) ChangeThread(threadUpdate ThreadUpdate, threadID int64) error {
 	// var id int
 	//should do two methods by slug and by id
 	_ = r.DbConn.QueryRow(sql_queries.UpdateThreadByID, threadUpdate.Message,

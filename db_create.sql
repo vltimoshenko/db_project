@@ -13,9 +13,9 @@ CREATE UNLOGGED TABLE persons(
 );
 
 CREATE UNLOGGED TABLE forums(
-    id serial,
     posts integer DEFAULT 0 NOT NULL,
-    slug text PRIMARY KEY,
+    slug citext PRIMARY KEY,
+    -- slug text PRIMARY KEY,
     threads integer DEFAULT 0 NOT NULL,
     title text DEFAULT ''NOT NULL,
     person CITEXT REFERENCES persons (nickname) ON DELETE RESTRICT ON UPDATE RESTRICT NOT NULL
@@ -164,7 +164,6 @@ begin
 end;
 $BODY$
 language plpgsql;
--- IMMUTABLE; --
 
 
 create trigger forum_user_after_post
@@ -180,10 +179,10 @@ create trigger forum_user_after_thread
 execute procedure add_user_to_forum();
 
 ----------------------------------------------------------------
-CREATE UNIQUE INDEX idx_persons_nickname ON persons(lower(nickname));
-CREATE INDEX IF NOT EXISTS idx_persons_email ON persons(lower(email));
+CREATE UNIQUE INDEX idx_persons_nickname ON persons(nickname);
+CREATE INDEX IF NOT EXISTS idx_persons_email ON persons(email);
 
-CREATE UNIQUE INDEX idx_forums_slug ON forums(lower(slug));
+CREATE UNIQUE INDEX idx_forums_slug ON forums(slug);
 
 CREATE INDEX IF NOT EXISTS idx_posts_thread ON posts(thread);
 CREATE INDEX IF NOT EXISTS idx_posts_id_thread ON posts(id, thread);
@@ -193,7 +192,7 @@ CREATE INDEX IF NOT EXISTS idx_post_path_first ON posts((path[1]));
 CREATE INDEX IF NOT EXISTS idx_post_parent_thread_path_id ON posts(thread, (path[1]), id) WHERE parent IS NUll;
 
 CREATE INDEX IF NOT EXISTS idx_threads_id ON threads(id); --primary key
-CREATE UNIQUE INDEX idx_threads_slug ON threads(lower(slug));
+CREATE UNIQUE INDEX idx_threads_slug ON threads(lower(slug)) INCLUDE (id);
 CREATE INDEX IF NOT EXISTS idx_threads_author ON threads(lower(author));
 -- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(lower(forum));
 -- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads(forum);
