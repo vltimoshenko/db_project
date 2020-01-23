@@ -156,7 +156,7 @@ func (s Service) CreateThread(thread NewThread, forumSlug string) (Thread, error
 		Votes:   0,
 	}
 	if err != nil {
-		// fmt.Printf("CreateThread: %s", err.Error())
+		fmt.Printf("CreateThread: %s", err.Error())
 		err = fmt.Errorf(messages.UserNotFound)
 	}
 
