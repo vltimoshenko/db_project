@@ -1,27 +1,36 @@
 package repository
 
 import (
-	"fmt"
+	"database/sql"
 	"strconv"
 
-	"github.com/db_project/pkg/messages"
 	. "github.com/db_project/pkg/models"
 	"github.com/db_project/pkg/sql_queries"
+	"github.com/jackc/pgtype"
 )
 
-func (r *Repository) ChangeThread(threadUpdate ThreadUpdate, threadID int64) error {
+func (r *Repository) ChangeThread(threadUpdate ThreadUpdate, slugOrID string) (Thread, error) {
+	threadID, err := strconv.ParseInt(slugOrID, 10, 64)
 
-	_, _ = r.DbConn.Exec(sql_queries.UpdateThreadByID, threadUpdate.Message,
-		threadUpdate.Title, threadID) //should read id?
+	var row *sql.Row
+	if err == nil {
+		row = r.DbConn.QueryRow(sql_queries.UpdateThreadByID, threadUpdate.Message,
+			threadUpdate.Title, threadID)
+	} else {
+		row = r.DbConn.QueryRow(sql_queries.UpdateThreadBySlug, threadUpdate.Message,
+			threadUpdate.Title, slugOrID)
+	}
 
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// 	return fmt.Errorf(messages.ThreadDoesNotExist)
-	// }
+	var thread Thread
+	var slug pgtype.Text
 
-	// fmt.Println(id)
-	return nil
+	err = row.Scan(&thread.Author, &thread.Created, &thread.Forum, &thread.ID, &thread.Message,
+		&slug, &thread.Title, &thread.Votes)
+	thread.Slug = slug.String
+
+	return thread, err
 }
+
 func (r *Repository) ChangeVote(updateVote Vote, slugOrID string) error {
 	threadID, err := strconv.Atoi(slugOrID)
 	if err != nil {
@@ -43,13 +52,13 @@ func (r *Repository) ChangeUser(user NewUser, nickname string) (User, error) {
 	return retUser, err
 }
 
-func (r *Repository) ChangePost(postUpdate PostUpdate, postID int64, isEdited bool) error {
-	_, err := r.DbConn.Exec(sql_queries.UpdatePost, postUpdate.Message,
-		isEdited, postID)
-	if err != nil {
-		fmt.Println(err.Error())
-		return fmt.Errorf(messages.ThreadDoesNotExist)
-	}
-
-	return err
+func (r *Repository) ChangePost(postUpdate PostUpdate, postID int64) (Post, error) {
+	row := r.DbConn.QueryRowx(sql_queries.UpdatePost, postUpdate.Message, postID)
+	// "RETURNING author::text, created, forum, is_edited, thread, message, parent"
+	var post Post
+	var parent pgtype.Int8
+	err := row.Scan(&post.Author, &post.Forum, &post.Created, &post.ID, &post.IsEdited,
+		&post.Message, &parent, &post.Thread)
+	post.Parent = parent.Int
+	return post, err
 }

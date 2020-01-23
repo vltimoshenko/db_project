@@ -36,11 +36,9 @@ func (h *Handler) ChangeThread(w http.ResponseWriter, r *http.Request) {
 	thread, err := h.Service.ChangeThread(threadUpdate, slugOrID)
 
 	if err != nil {
-		if err.Error() == messages.ThreadDoesNotExist {
-			SetError(w, 404, err.Error())
-			return
-		}
 		log.Println(err.Error())
+		SetError(w, 404, messages.ThreadDoesNotExist)
+		return
 	}
 
 	answer, _ := json.Marshal(thread)
@@ -97,6 +95,7 @@ func (h *Handler) ChangePost(w http.ResponseWriter, r *http.Request) {
 	// if !ok {
 	// 	//
 	// }
+
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	// if err != nil {
 	// 	//
@@ -116,11 +115,9 @@ func (h *Handler) ChangePost(w http.ResponseWriter, r *http.Request) {
 	post, err := h.Service.ChangePost(postUpdate, id)
 
 	if err != nil {
-		if err.Error() == messages.PostDoesNotExist {
-			SetError(w, 404, err.Error())
-			return
-		}
 		log.Println(err.Error())
+		SetError(w, 404, messages.ThreadDoesNotExist)
+		return
 	}
 
 	answer, _ := json.Marshal(post)

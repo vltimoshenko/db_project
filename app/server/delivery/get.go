@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/db_project/pkg/messages"
-	// . "github.com/db_project/pkg/models"
+	. "github.com/db_project/pkg/models"
 
 	"github.com/gorilla/mux"
 )
@@ -24,7 +24,7 @@ func (h *Handler) GetThread(w http.ResponseWriter, r *http.Request) { //+
 
 	// }
 
-	forum, err := h.Service.GetThread(slugOrID)
+	thread, err := h.Service.GetThread(slugOrID)
 
 	if err != nil {
 		if err.Error() == messages.ThreadDoesNotExist {
@@ -34,7 +34,7 @@ func (h *Handler) GetThread(w http.ResponseWriter, r *http.Request) { //+
 	}
 
 	w.WriteHeader(code)
-	answer, _ := json.Marshal(forum)
+	answer, _ := thread.MarshalJSON()
 	w.Write(answer)
 }
 
@@ -67,7 +67,7 @@ func (h *Handler) GetForum(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(code)
-	answer, _ := json.Marshal(forum)
+	answer, _ := forum.MarshalJSON()
 	w.Write(answer)
 }
 
@@ -85,6 +85,7 @@ func (h *Handler) GetThreads(w http.ResponseWriter, r *http.Request) {
 	params := h.ParseThreadsAndUsersQuery(r.URL.Query())
 	params["forum"] = forumSlug
 
+	var threads Threads
 	threads, err := h.Service.GetThreads(params)
 
 	if err != nil {
@@ -104,7 +105,7 @@ func (h *Handler) GetThreads(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(code)
-	answer, _ := json.Marshal(threads)
+	answer, _ := threads.MarshalJSON()
 	w.Write(answer)
 }
 
@@ -123,6 +124,7 @@ func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	params := h.ParseThreadsAndUsersQuery(r.URL.Query())
 	params["forum"] = forumSlug
 
+	var users Users
 	users, err := h.Service.GetUsers(params)
 
 	if err != nil {
@@ -133,7 +135,7 @@ func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(code)
-	answer, _ := json.Marshal(users)
+	answer, _ := users.MarshalJSON()
 	w.Write(answer)
 }
 
@@ -147,6 +149,7 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	// }
 
+	var user User
 	user, err := h.Service.GetUser(nickname)
 
 	if err != nil {
@@ -157,7 +160,7 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(code)
-	answer, _ := json.Marshal(user)
+	answer, _ := user.MarshalJSON()
 	w.Write(answer)
 }
 
@@ -214,23 +217,6 @@ func (h *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	// params := h.ParsePostsQuery(r.URL.Query())
-
-	// posts, err := h.Service.GetPosts(slugOrID, params)
-
-	// if err != nil {
-	// 	if err.Error() == messages.ThreadDoesNotExist {
-	// 		SetError(w, 404, err.Error())
-	// 		return
-	// 	}
-	// }
-	// args := mux.Vars(r)
-	// threadKey, ok := args["id"]
-	// if !ok {
-	// 	buildmode.Log.Println("No such a param: ", "nick")
-	// 	return
-	// }
-
 	limit, _ := strconv.ParseInt(r.FormValue("limit"), 10, 64)
 
 	since := r.FormValue("since")
@@ -240,6 +226,7 @@ func (h *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	}
 	desc, _ := strconv.ParseBool(r.FormValue("desc"))
 
+	var posts Posts
 	posts, err := h.Service.GetPosts(slugOrID, limit, since, sort, desc)
 
 	if err != nil {
@@ -250,6 +237,6 @@ func (h *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(code)
-	answer, _ := json.Marshal(posts)
+	answer, _ := posts.MarshalJSON()
 	w.Write(answer)
 }

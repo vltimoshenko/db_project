@@ -85,3 +85,16 @@ type Vote struct {
 	Nickname string `json:"nickname" db:"nickname"`
 	Voice    int    `json:"voice"    db:"voice"`
 }
+
+type Error struct {
+	Message string `json:"message"`
+}
+
+//easyjson:json
+type Threads []Thread
+
+//easyjson:json
+type Posts []Post
+
+//easyjson:json
+type Users []User

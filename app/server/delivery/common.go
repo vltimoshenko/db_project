@@ -1,10 +1,10 @@
 package delivery
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/db_project/app/forum"
+	. "github.com/db_project/pkg/models"
 )
 
 type Handler struct {
@@ -13,13 +13,9 @@ type Handler struct {
 
 func SetError(w http.ResponseWriter, code int, msg string) {
 	w.WriteHeader(code)
-	errJSON, _ := json.Marshal(Error{msg})
+	errJSON, _ := Error{msg}.MarshalJSON()
 	w.Write(errJSON)
 	return
-}
-
-type Error struct {
-	Message string `json:"message"`
 }
 
 func (h *Handler) Clear(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +47,7 @@ func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
 	// if err != nil {
 	// 	SetError(w, 500, err.Error())
 	// }
-	answer, _ := json.Marshal(status)
+	answer, _ := status.MarshalJSON()
 
 	w.WriteHeader(code)
 	w.Write(answer)

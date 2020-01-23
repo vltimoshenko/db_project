@@ -27,9 +27,9 @@ type RepositoryInterface interface {
 	GetVoteByThreadSlug(nickname string, threadSlug string) (Vote, error)
 
 	ChangeUser(NewUser, string) (User, error)
-	ChangeThread(ThreadUpdate, int64) error
+	ChangeThread(ThreadUpdate, string) (Thread, error)
 	ChangeVote(Vote, string) error
-	ChangePost(PostUpdate, int64, bool) error
+	ChangePost(PostUpdate, int64) (Post, error)
 
 	ClearDB() error
 	GetStatus() (Status, error)

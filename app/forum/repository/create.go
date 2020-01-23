@@ -80,7 +80,6 @@ func init() {
 var mutexMapMutex sync.Mutex
 
 func (r *Repository) CreatePosts(posts []Post, threadID int64, forum string) ([]Post, error) {
-
 	userList := make(map[string]bool)
 	if len(posts) == 0 {
 		return posts, nil
@@ -102,8 +101,7 @@ func (r *Repository) CreatePosts(posts []Post, threadID int64, forum string) ([]
 		}
 	}
 
-	prefix := `INSERT INTO forum_users(person, forum) VALUES `
-	query := createPacketQuery(prefix, 2, len(userList), `ON CONFLICT DO NOTHING`)
+	query := createPacketQuery(sql_queries.InsertForumUsers, 2, len(userList), `ON CONFLICT DO NOTHING`)
 	params := make([]interface{}, 0, len(userList))
 	for key := range userList {
 		params = append(params, key, forum)

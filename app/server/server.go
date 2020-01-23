@@ -88,7 +88,7 @@ func OpenSqlxViaPgxConnPool() (*sqlx.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	db.SetMaxOpenConns(8)
+	db.SetMaxOpenConns(8) //8
 	db.SetMaxIdleConns(8)
 	err = db.Ping()
 	if err != nil {

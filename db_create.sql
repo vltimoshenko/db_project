@@ -6,7 +6,6 @@ DROP TABLE IF EXISTS persons;
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE UNLOGGED TABLE persons(
-    -- nickname CITEXT COLLATE "POSIX" PRIMARY KEY,
     nickname CITEXT PRIMARY KEY,
     about TEXT NOT NULL DEFAULT '',
     email CITEXT NOT NULL UNIQUE,
@@ -35,7 +34,7 @@ CREATE UNLOGGED TABLE threads(
 CREATE OR REPLACE FUNCTION get_thread_by_post(post_ BIGINT) RETURNS INTEGER AS 
 $BODY$
     BEGIN
-        RETURN (SELECT thread FROM posts WHERE id=post_);
+        RETURN (SELECT thread FROM posts WHERE id = post_);
     END;
 $BODY$ 
 LANGUAGE plpgsql;
@@ -48,8 +47,10 @@ CREATE UNLOGGED TABLE posts(
     is_edited boolean DEFAULT false NOT NULL,
     message text NOT NULL,
     parent BIGINT REFERENCES posts(id) ON DELETE CASCADE ON UPDATE RESTRICT
-        CONSTRAINT post_parent_constraint CHECK (get_thread_by_post(parent)=thread),
+        CONSTRAINT post_parent_constraint CHECK (get_thread_by_post(parent) = thread),
     thread integer,
+    -- thread BIGINT REFERENCES posts(id) ON DELETE CASCADE ON UPDATE RESTRICT
+    --     CONSTRAINT post_parent_constraint CHECK (get_thread_by_post(parent) = thread)
     path INTEGER[] not null
 );
 
@@ -114,15 +115,15 @@ CREATE TRIGGER insert_thread
 CREATE OR REPLACE FUNCTION update_thread_votes_counter() RETURNS TRIGGER AS 
 $BODY$
     BEGIN
-        IF TG_OP='INSERT' THEN
-            UPDATE threads SET votes=votes+NEW.voice WHERE id=NEW.thread;
+        IF TG_OP = 'INSERT' THEN
+            UPDATE threads SET votes = votes + NEW.voice WHERE id = NEW.thread;
             RETURN NEW;
-        ELSIF TG_OP='UPDATE' THEN
-            UPDATE threads SET votes=votes+(NEW.voice-OLD.voice) WHERE id=NEW.thread;
+        ELSIF TG_OP = 'UPDATE' THEN
+            UPDATE threads SET votes = votes + NEW.voice - OLD.voice WHERE id = NEW.thread;
             RETURN NEW;
         ELSE
             RAISE EXCEPTION 'Invalid call update_thread_votes_counter()';
-        end if;
+        END IF;
     END
 $BODY$
 LANGUAGE plpgsql;
@@ -132,25 +133,49 @@ DROP TRIGGER IF EXISTS update_thread_vote ON votes;
 CREATE TRIGGER update_thread_vote AFTER INSERT OR UPDATE ON votes
     FOR EACH ROW EXECUTE PROCEDURE update_thread_votes_counter();
 
+-- CREATE UNLOGGED TABLE forum_users (
+--     forum CITEXT NOT NULL,
+--     nickname CITEXT NOT NULL,
+--     about TEXT NOT NULL DEFAULT '',
+--     email CITEXT NOT NULL UNIQUE,
+--     fullname TEXT NOT NULL DEFAULT '',
+--     PRIMARY KEY(forum, nickname)
+-- );
+
 CREATE UNLOGGED TABLE forum_users (
     forum CITEXT NOT NULL,
-    person CITEXT NOT NULL
+    nickname CITEXT NOT NULL,
+    PRIMARY KEY(forum, nickname)
 );
+
+-- CREATE OR REPLACE FUNCTION add_user_to_forum() RETURNS TRIGGER AS
+-- $BODY$
+--     BEGIN
+--         INSERT INTO forum_users (forum, nickname, email, fullname, about)
+--         SELECT NEW.forum, nickname, email, fullname, about
+--         FROM persons
+--         WHERE nickname = NEW.author
+--         ON CONFLICT DO NOTHING;
+--         RETURN NULL;
+--     END;
+-- $BODY$
+-- LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION  add_user_to_forum() returns trigger as
 $BODY$
 begin
-    insert into forum_users(forum, person) values (NEW.forum, NEW.author) on conflict do nothing;
+    insert into forum_users(forum, nickname) values (NEW.forum, NEW.author) on conflict do nothing;
     return NEW;
 end;
 $BODY$
 language plpgsql;
 
-
-
 CREATE TRIGGER forum_user_after_thread AFTER INSERT ON threads
-    for each row execute procedure add_user_to_forum();
+    FOR EACH ROW EXECUTE PROCEDURE add_user_to_forum();
 
+-- CREATE TRIGGER forum_user_after_post AFTER INSERT ON posts
+--     FOR EACH ROW EXECUTE PROCEDURE add_user_to_forum();
+    
 
 CREATE UNIQUE INDEX idx_persons_nickname ON persons(nickname); --+
 CREATE INDEX IF NOT EXISTS idx_persons_email ON persons(email); --+
@@ -171,4 +196,6 @@ CREATE INDEX IF NOT EXISTS idx_threads_forum_created ON threads(forum, created);
 
 CREATE INDEX IF NOT EXISTS idx_votes_coverage ON votes(thread, nickname) INCLUDE (voice); --+
 
-create unique index on forum_users(forum, person); --reverse
+CREATE INDEX IF NOT EXISTS idx_forum_users ON forum_users(forum, nickname);
+
+-- CLUSTER forum_users USING idx_forum_users;

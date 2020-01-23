@@ -17,21 +17,27 @@ const (
 	InsertVoteByThreadID   = "INSERT INTO votes (nickname, voice, thread)VALUES($1,$2,$3);"
 	InsertVoteByThreadSlug = "INSERT INTO votes (nickname, voice, thread)VALUES" +
 		"($1,$2,(SELECT id FROM threads WHERE slug = $3));"
+	InsertForumUsers = `INSERT INTO forum_users(nickname, forum) VALUES `
 
-	UpdateUserByNickname = `
-				UPDATE persons
-				SET about = coalesce(nullif($2, ''), about),
-					email = coalesce(nullif($3, ''), email),
-					fullname = coalesce(nullif($4, ''), fullname)
-				WHERE nickname = $1
-				RETURNING nickname, fullname, email, about;`
+	UpdateUserByNickname = "UPDATE persons SET about = COALESCE(nullif($2, ''), about)," +
+		"email = COALESCE(nullif($3, ''), email), fullname = COALESCE(nullif($4, ''), fullname)" +
+		"WHERE nickname = $1 RETURNING nickname, fullname, email, about;"
+	UpdatePost = "UPDATE posts " +
+		"SET message = COALESCE(nullif($1, ''), message), is_edited = ($1 <> message AND $1 <> '')" + // not null, maybe need trim()
+		"WHERE id = $2" +
+		"RETURNING author, forum, created, id, is_edited, message, parent, thread;"
 
-	UpdateThreadByID       = "UPDATE threads SET message = $1, title = $2 WHERE id = $3;"
+	UpdateThreadByID = "UPDATE threads SET title = COALESCE(nullif($2, ''), title)," +
+		"message = COALESCE(nullif($1, ''), message) WHERE id = $3 " +
+		"RETURNING author, created, forum, id, message, slug, title, votes"
+
+	UpdateThreadBySlug = "UPDATE threads SET title = COALESCE(nullif($2, ''), title)," +
+		"message = COALESCE(nullif($1, ''), message) WHERE slug = $3 " +
+		"RETURNING author, created, forum, id, message, slug, title, votes"
+
 	UpdateVoteByThreadID   = "UPDATE votes SET voice = $1 WHERE nickname = $2 AND thread = $3;"
 	UpdateVoteByThreadSlug = "UPDATE votes SET voice = $1 WHERE nickname = $2 AND " +
 		"thread = (SELECT id FROM threads WHERE slug = $3);"
-
-	UpdatePost = "UPDATE posts SET message = $1, is_edited = $2 WHERE id = $3;"
 
 	SelectForumBySlug = `SELECT f.posts, f.slug, f.threads, f.title, f.person
 		FROM forums as f WHERE f.slug = $1;`
@@ -52,8 +58,13 @@ const (
 
 	SelectUsersWithParams = "SELECT p.about, p.email, p.fullname, p.nickname " +
 		`FROM persons as p ` +
-		`JOIN forum_users ON p.nickname = forum_users.person ` +
+		`JOIN forum_users ON p.nickname = forum_users.nickname ` +
 		`WHERE forum_users.forum = :forum `
+
+	// select курильщика
+	// SelectUsersWithParams = "SELECT p.about, p.email, p.fullname, p.nickname " +
+	// 	`FROM forum_users as p ` +
+	// 	`WHERE p.forum = :forum `
 
 	SelectDBStatus = "SELECT " +
 		"(SELECT COUNT(*) FROM posts) AS posts, " +
@@ -61,7 +72,7 @@ const (
 		"(SELECT COUNT(*) FROM persons) AS persons, " +
 		"(SELECT COUNT(*) FROM forums) AS forums;"
 
-	SelectPostsSorted = `SELECT author, forum, created, posts.id, is_edited, message, coalesce(parent, 0), thread 
+	SelectPostsSorted = `SELECT author, forum, created, posts.id, is_edited, message, COALESCE(parent, 0), thread 
 					FROM posts
 					{{.Condition}}
 					ORDER BY {{.OrderBy}}
