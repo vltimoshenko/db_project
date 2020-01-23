@@ -8,8 +8,6 @@ import (
 	"github.com/gorilla/mux"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
-	"github.com/valyala/fasthttp"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
 
 	// "github.com/valyala/fasthttp"
 	// "github.com/valyala/fasthttp/fasthttpadaptor"
@@ -19,7 +17,6 @@ import (
 	"github.com/db_project/app/server/delivery"
 
 	"github.com/db_project/pkg/config"
-	"github.com/db_project/pkg/middleware"
 )
 
 func NewRouter() (*mux.Router, error) {
@@ -45,7 +42,7 @@ func NewRouter() (*mux.Router, error) {
 	}
 
 	router = router.PathPrefix("/api").Subrouter()
-	router.Use(middleware.AccessLogMiddleware)
+	// router.Use(middleware.AccessLogMiddleware)
 
 	router.HandleFunc("/forum/create", h.CreateForum).Methods(http.MethodPost)
 	router.HandleFunc("/forum/{slug}/create", h.CreateThread).Methods(http.MethodPost)
@@ -80,7 +77,7 @@ func RunServer() {
 		log.Println(err.Error())
 		log.Fatal("Failed to create router")
 	}
-	log.Fatal(fasthttp.ListenAndServe(config.HostAddress, fasthttpadaptor.NewFastHTTPHandler(router)))
+	log.Fatal(http.ListenAndServe(config.HostAddress, router))
 }
 
 func OpenSqlxViaPgxConnPool() (*sqlx.DB, error) {
@@ -88,7 +85,7 @@ func OpenSqlxViaPgxConnPool() (*sqlx.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	db.SetMaxOpenConns(8) //8
+	// db.SetMaxOpenConns(16) //8
 	db.SetMaxIdleConns(8)
 	err = db.Ping()
 	if err != nil {
