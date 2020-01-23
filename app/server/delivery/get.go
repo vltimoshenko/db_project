@@ -89,19 +89,19 @@ func (h *Handler) GetThreads(w http.ResponseWriter, r *http.Request) {
 	threads, err := h.Service.GetThreads(params)
 
 	if err != nil {
-		if err.Error() == messages.ThreadAlreadyExists {
-			code = 409
-		}
+		// if err.Error() == messages.ThreadAlreadyExists {
+		// 	code = 409
+		// }
 
-		if err.Error() == messages.UserNotFound {
-			SetError(w, 404, err.Error())
-			return
-		}
-
-		if err.Error() == messages.ForumDoesNotExist {
-			SetError(w, 404, err.Error())
-			return
-		}
+		// if err.Error() == messages.UserNotFound {
+		// 	SetError(w, 404, err.Error())
+		// 	return
+		// }
+		// if err.Error() == messages.ForumDoesNotExist {
+		// fmt.Printf("GetThreads: %s", err.Error())
+		SetError(w, 404, err.Error())
+		return
+		// }
 	}
 
 	w.WriteHeader(code)

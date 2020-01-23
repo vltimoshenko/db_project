@@ -18,7 +18,6 @@ ENV POSTGRES_PORT 5432
 ENV POSTGRES_DB forum
 ENV POSTGRES_USER forum
 ENV POSTGRES_PASSWORD forum
-# ENV POSTGRES_DSN=postgres://subd:subd@localhost/subd
 ENV POSTGRES_DSN=postgres://forum:forum@localhost:5432/forum
 EXPOSE $PORT
 

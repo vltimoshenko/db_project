@@ -81,13 +81,13 @@ func (r *Repository) GetThreads(params map[string]interface{}) ([]Thread, error)
 
 	query, args, err := sqlx.Named(queryStr, params)
 	if err != nil {
-		// log.Print(err)
+		// fmt.Printf("Rep GetThreads: %s", err.Error())
 		return threads, err
 	}
 
 	query, args, err = sqlx.In(query, args...)
 	if err != nil {
-		// log.Print(err)
+		// fmt.Printf("Rep GetThreads: %s", err.Error())
 		return threads, err
 	}
 
@@ -96,7 +96,7 @@ func (r *Repository) GetThreads(params map[string]interface{}) ([]Thread, error)
 	rows, err := r.DbConn.Queryx(query, args...)
 
 	if err != nil {
-		// log.Print(err)
+		// fmt.Printf("Rep GetThreads: %s", err.Error())
 		return threads, err
 	}
 	defer rows.Close()
@@ -109,13 +109,17 @@ func (r *Repository) GetThreads(params map[string]interface{}) ([]Thread, error)
 			&slug, &thread.Title, &thread.Votes)
 		thread.Slug = slug.String
 		if err != nil {
-			// fmt.Println(err)
+			// fmt.Printf("Rep GetThreads: %s", err.Error())
 			return threads, fmt.Errorf(messages.ThreadDoesNotExist)
 		}
 
 		threads = append(threads, thread)
 	}
-	return threads, nil
+
+	if len(threads) == 0 {
+		_, err = r.GetForumBySlug(params["forum"].(string))
+	}
+	return threads, err
 }
 
 func (r *Repository) GetUsers(params map[string]interface{}) ([]User, error) {
@@ -156,7 +160,12 @@ func (r *Repository) GetUsers(params map[string]interface{}) ([]User, error) {
 
 		users = append(users, user)
 	}
-	return users, nil
+
+	if len(users) == 0 {
+		_, err = r.GetForumBySlug(params["forum"].(string))
+	}
+
+	return users, err
 }
 
 func (r *Repository) GetForumBySlug(slug string) (Forum, error) {

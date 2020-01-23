@@ -30,23 +30,19 @@ func (s Service) GetForum(forumSlug string) (Forum, error) {
 }
 
 func (s Service) GetThreads(params map[string]interface{}) ([]Thread, error) {
-	_, err := s.Repository.GetForumBySlug(params["forum"].(string))
-	if err != nil {
-		return []Thread{}, fmt.Errorf(messages.ForumDoesNotExist)
-	}
-
 	threads, err := s.Repository.GetThreads(params)
 	if err != nil {
-		return threads, fmt.Errorf(messages.ForumDoesNotExist) //specific error
+		// fmt.Printf("Ser GetThreads: %s", err.Error())
+		return threads, fmt.Errorf(messages.ForumDoesNotExist)
 	}
 	return threads, nil
 }
 
 func (s Service) GetUsers(params map[string]interface{}) ([]User, error) {
-	_, err := s.Repository.GetForumBySlug(params["forum"].(string))
-	if err != nil {
-		return []User{}, fmt.Errorf(messages.ForumDoesNotExist)
-	}
+	// _, err := s.Repository.GetForumBySlug(params["forum"].(string))
+	// if err != nil {
+	// 	return []User{}, fmt.Errorf(messages.ForumDoesNotExist)
+	// }
 
 	users, err := s.Repository.GetUsers(params)
 	if err != nil {

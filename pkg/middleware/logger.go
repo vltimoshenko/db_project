@@ -1,17 +1,10 @@
 package middleware
 
 import (
-	// "fmt"
-
 	"fmt"
 	"net/http"
 	"time"
 )
-
-// type Logger struct {
-// 	StdLogger *log.Logger
-// 	f         *os.File
-// }
 
 func AccessLogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
