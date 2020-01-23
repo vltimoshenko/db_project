@@ -2,10 +2,10 @@ package service
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/db_project/pkg/messages"
 	. "github.com/db_project/pkg/models"
+	"strconv"
+	"sync"
 )
 
 func (s Service) GetThread(slugOrID string) (Thread, error) {
@@ -39,11 +39,6 @@ func (s Service) GetThreads(params map[string]interface{}) ([]Thread, error) {
 }
 
 func (s Service) GetUsers(params map[string]interface{}) ([]User, error) {
-	// _, err := s.Repository.GetForumBySlug(params["forum"].(string))
-	// if err != nil {
-	// 	return []User{}, fmt.Errorf(messages.ForumDoesNotExist)
-	// }
-
 	users, err := s.Repository.GetUsers(params)
 	if err != nil {
 		return users, fmt.Errorf(messages.ForumDoesNotExist)
@@ -59,19 +54,47 @@ func (s Service) GetPost(postID int64, params []string) (map[string]interface{},
 	}
 
 	postInfo["post"] = post
+	// could do by gorutines
+	wg := sync.WaitGroup{}
+	mu := sync.Mutex{}
 	for _, obj := range params {
-		switch obj {
-		case "user":
-			postInfo["author"], _ = s.Repository.GetUserByNickname(post.Author)
-		case "forum":
-			postInfo["forum"], _ = s.Repository.GetForumBySlug(post.Forum)
-		case "thread":
-			postInfo["thread"], _ = s.Repository.GetThreadByID(post.Thread)
-			//errors could be eliminated
-		}
+		wg.Add(1)
+		// switch obj {
+		// case "user":
+		// 	postInfo["author"], _ = s.Repository.GetUserByNickname(post.Author)
+		// case "forum":
+		// 	postInfo["forum"], _ = s.Repository.GetForumBySlug(post.Forum)
+		// case "thread":
+		// 	postInfo["thread"], _ = s.Repository.GetThreadByID(post.Thread)
+		// }
+		go s.getPostWorker(postInfo, &post, obj, &wg, &mu)
 	}
 
+	wg.Wait()
 	return postInfo, err
+}
+
+func (s Service) getPostWorker(postInfo map[string]interface{}, post *Post, param string,
+	wg *sync.WaitGroup, mu *sync.Mutex) {
+
+	defer wg.Done()
+	switch param {
+	case "user":
+		user, _ := s.Repository.GetUserByNickname(post.Author)
+		mu.Lock()
+		postInfo["author"] = user
+		mu.Unlock()
+	case "forum":
+		forum, _ := s.Repository.GetForumBySlug(post.Forum)
+		mu.Lock()
+		postInfo["forum"] = forum
+		mu.Unlock()
+	case "thread":
+		thread, _ := s.Repository.GetThreadByID(post.Thread)
+		mu.Lock()
+		postInfo["thread"] = thread
+		mu.Unlock()
+	}
 }
 
 func (s Service) GetPosts(slugOrID string, limit int64, since string, sort string, desc bool) ([]Post, error) {

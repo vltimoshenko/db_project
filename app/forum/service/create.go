@@ -117,7 +117,7 @@ func (s Service) CreateForum(forum NewForum) (Forum, error) {
 	returnForum, err := s.Repository.GetForumBySlug(forum.Slug)
 	if err == nil {
 		return returnForum, fmt.Errorf(messages.ForumAlreadyExists)
-	}
+	} //could remove
 
 	forum.User = user.Nickname
 	err = s.Repository.CreateForum(forum)
