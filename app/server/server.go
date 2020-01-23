@@ -9,9 +9,6 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 
-	// "github.com/valyala/fasthttp"
-	// "github.com/valyala/fasthttp/fasthttpadaptor"
-
 	"github.com/db_project/app/forum/repository"
 	"github.com/db_project/app/forum/service"
 	"github.com/db_project/app/server/delivery"

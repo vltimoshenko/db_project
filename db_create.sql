@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS persons;
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE UNLOGGED TABLE persons(
-    nickname CITEXT PRIMARY KEY,
+    nickname CITEXT COLLATE "POSIX" PRIMARY KEY,
     about TEXT NOT NULL DEFAULT '',
     email CITEXT NOT NULL UNIQUE,
     fullname TEXT NOT NULL DEFAULT ''
@@ -49,8 +49,6 @@ CREATE UNLOGGED TABLE posts(
     parent BIGINT REFERENCES posts(id) ON DELETE CASCADE ON UPDATE RESTRICT
         CONSTRAINT post_parent_constraint CHECK (get_thread_by_post(parent) = thread),
     thread integer,
-    -- thread BIGINT REFERENCES posts(id) ON DELETE CASCADE ON UPDATE RESTRICT
-    --     CONSTRAINT post_parent_constraint CHECK (get_thread_by_post(parent) = thread)
     path INTEGER[] not null
 );
 
@@ -144,8 +142,7 @@ CREATE TRIGGER update_thread_vote AFTER INSERT OR UPDATE ON votes
 
 CREATE UNLOGGED TABLE forum_users (
     forum CITEXT NOT NULL,
-    nickname CITEXT NOT NULL,
-    PRIMARY KEY(forum, nickname)
+    nickname CITEXT NOT NULL
 );
 
 -- CREATE OR REPLACE FUNCTION add_user_to_forum() RETURNS TRIGGER AS
@@ -161,14 +158,14 @@ CREATE UNLOGGED TABLE forum_users (
 -- $BODY$
 -- LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION  add_user_to_forum() returns trigger as
+CREATE OR REPLACE FUNCTION  add_user_to_forum() RETURNS trigger AS
 $BODY$
-begin
-    insert into forum_users(forum, nickname) values (NEW.forum, NEW.author) on conflict do nothing;
-    return NEW;
-end;
+BEGIN
+    INSERT INTO forum_users(forum, nickname) VALUES (NEW.forum, NEW.author) ON conflict do nothing;
+    RETURN NEW;
+END;
 $BODY$
-language plpgsql;
+LANGUAGE plpgsql;
 
 CREATE TRIGGER forum_user_after_thread AFTER INSERT ON threads
     FOR EACH ROW EXECUTE PROCEDURE add_user_to_forum();
