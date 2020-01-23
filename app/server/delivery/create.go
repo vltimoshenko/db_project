@@ -38,17 +38,17 @@ func (h *Handler) CreatePosts(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if err.Error() == messages.ParentInAnotherThread || err.Error() == messages.ParentPostDoesNotExist {
-			fmt.Printf("Handler CreatePosts: %s", err.Error())
+			// fmt.Printf("Handler CreatePosts: %s", err.Error())
 			SetError(w, 409, err.Error())
 			return
 		}
 
 		if err.Error() == messages.ThreadDoesNotExist || err.Error() == messages.UserNotFound {
-			fmt.Printf("Handler CreatePosts: %s", err.Error())
+			// fmt.Printf("Handler CreatePosts: %s", err.Error())
 			SetError(w, 404, err.Error())
 			return
 		}
-		fmt.Printf("Handler CreatePosts Unknown error: %s", err.Error())
+		// fmt.Printf("Handler CreatePosts Unknown error: %s", err.Error())
 	}
 
 	answer, _ := json.Marshal(forum)
@@ -168,7 +168,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		if err.Error() == messages.UserAlreadyExists {
 			code = 409
 		}
-		fmt.Println(err.Error())
+		// fmt.Println(err.Error())
 	}
 
 	var answer []byte

@@ -89,7 +89,7 @@ func (s Service) GetPosts(slugOrID string, limit int64, since string, sort strin
 	}
 
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 		return []Post{}, fmt.Errorf(messages.ThreadDoesNotExist)
 	}
 

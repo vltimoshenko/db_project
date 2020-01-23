@@ -3,7 +3,6 @@ package delivery
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -36,7 +35,7 @@ func (h *Handler) ChangeThread(w http.ResponseWriter, r *http.Request) {
 	thread, err := h.Service.ChangeThread(threadUpdate, slugOrID)
 
 	if err != nil {
-		log.Println(err.Error())
+		// log.Println(err.Error())
 		SetError(w, 404, messages.ThreadDoesNotExist)
 		return
 	}
@@ -77,7 +76,7 @@ func (h *Handler) ChangeUser(w http.ResponseWriter, r *http.Request) {
 			SetError(w, 404, err.Error())
 			return
 		}
-		log.Println(err.Error())
+		// log.ln(err.Error())
 	}
 
 	answer, _ := json.Marshal(user)
@@ -115,7 +114,7 @@ func (h *Handler) ChangePost(w http.ResponseWriter, r *http.Request) {
 	post, err := h.Service.ChangePost(postUpdate, id)
 
 	if err != nil {
-		log.Println(err.Error())
+		// log.Println(err.Error())
 		SetError(w, 404, messages.ThreadDoesNotExist)
 		return
 	}

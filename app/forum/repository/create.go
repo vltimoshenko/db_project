@@ -91,7 +91,7 @@ func (r *Repository) CreatePosts(posts []Post, threadID int64, forum string) ([]
 		currentPacket := posts[i:int(math.Min(float64(i+PacketSize), float64(len(posts))))]
 		currentPacket, err := r.createPostsByPacket(threadID, forum, currentPacket, created)
 		if err != nil {
-			fmt.Printf("Rep CreatePosts: %s\n", err.Error())
+			// fmt.Printf("Rep CreatePosts: %s\n", err.Error())
 			return posts, err
 		}
 
@@ -134,7 +134,7 @@ func (r *Repository) createPostsByPacket(threadId int64, forumSLug string, posts
 	rows, err := r.DbConn.Query(query, params...)
 
 	if err != nil || (rows != nil && rows.Err() != nil) {
-		fmt.Printf("createPostsByPacket: %s\n", err.Error())
+		// fmt.Printf("createPostsByPacket: %s\n", err.Error())
 		if strings.Contains(err.Error(), "post_parent_constraint") {
 			return posts, fmt.Errorf(messages.ParentInAnotherThread)
 		} else {
@@ -148,7 +148,7 @@ func (r *Repository) createPostsByPacket(threadId int64, forumSLug string, posts
 	for rows.Next() {
 		err := rows.Scan(&(posts[i].ID))
 		if err != nil {
-			fmt.Printf("createPostsByPacket: %s\n", err.Error())
+			// fmt.Printf("createPostsByPacket: %s\n", err.Error())
 			return posts, err
 		}
 		posts[i].Forum = forumSLug
@@ -158,34 +158,20 @@ func (r *Repository) createPostsByPacket(threadId int64, forumSLug string, posts
 		i++
 	}
 
-	// if i == 0 && len(posts) > 0 {
-	// 	_, err := r.GetThreadByID(threadId)
-	// 	if err != nil {
-	// 		fmt.Println("createPostsByPacket: i == 0 && len(posts) > 0")
-	// 		return posts, fmt.Errorf(messages.ThreadDoesNotExist)
-	// 	}
-
-	// 	_, err = r.GetUserByNickname(posts[0].Author)
-	// 	if err != nil {
-	// 		fmt.Printf("createPostsByPacket: %s\n", err.Error())
-	// 		return posts, fmt.Errorf(messages.UserNotFound)
-	// 	}
-	// 	fmt.Println("createPostsByPacket: messages.ParentInAnotherThread")
-	// 	return posts, fmt.Errorf(messages.ParentInAnotherThread)
-	// }
-	var cnt int64
 	if i == 0 && len(posts) > 0 {
-		fmt.Println("createPostsByPacket: i == 0 && len(posts) > 0")
-		if row := r.DbConn.QueryRow(`SELECT count(id) from threads WHERE id=$1;`, threadId); row.Scan(&cnt) != nil || cnt == 0 {
-			// fmt.Printf("createPostsByPacket: %s\n", err.Error())
-			return posts, fmt.Errorf(messages.UserNotFound)
-		} else if row := r.DbConn.QueryRow(`SELECT COUNT(nickname) FROM persons WHERE nickname=$1`, posts[0].Author); row.Scan(&cnt) != nil || cnt == 0 {
-			// fmt.Printf("createPostsByPacket: %s\n", err.Error())
-			return posts, fmt.Errorf(messages.UserNotFound)
-		} else {
-			fmt.Println("createPostsByPacket: messages.ParentInAnotherThread")
-			return posts, fmt.Errorf(messages.ParentInAnotherThread)
+		_, err := r.GetThreadByID(threadId)
+		if err != nil {
+			// fmt.Println("createPostsByPacket: i == 0 && len(posts) > 0")
+			return posts, fmt.Errorf(messages.ThreadDoesNotExist)
 		}
+
+		_, err = r.GetUserByNickname(posts[0].Author)
+		if err != nil {
+			// fmt.Printf("createPostsByPacket: %s\n", err.Error())
+			return posts, fmt.Errorf(messages.UserNotFound)
+		}
+		// fmt.Println("createPostsByPacket: messages.ParentInAnotherThread")
+		return posts, fmt.Errorf(messages.ParentInAnotherThread)
 	}
 
 	return posts, nil

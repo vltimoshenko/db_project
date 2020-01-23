@@ -21,7 +21,7 @@ func (s Service) ChangeUser(newUser NewUser, nickname string) (User, error) {
 	user, err := s.Repository.ChangeUser(newUser, nickname)
 
 	if err != nil {
-		fmt.Printf("Serv ChangeUser: %s", err.Error())
+		// fmt.Printf("Serv ChangeUser: %s", err.Error())
 		return User{}, fmt.Errorf(messages.UserAlreadyExists)
 	}
 

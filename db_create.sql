@@ -193,6 +193,26 @@ CREATE INDEX IF NOT EXISTS idx_threads_forum_created ON threads(forum, created);
 
 CREATE INDEX IF NOT EXISTS idx_votes_coverage ON votes(thread, nickname) INCLUDE (voice); --+
 
-CREATE INDEX IF NOT EXISTS idx_forum_users ON forum_users(forum, nickname);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_forum_users ON forum_users(forum, nickname);
 
 -- CLUSTER forum_users USING idx_forum_users;
+
+-- CREATE UNIQUE INDEX users_nickname_index on Users (LOWER(nickname));
+-- CREATE UNIQUE INDEX forum_slug_index on Forum (LOWER(slug));
+
+-- create index IF NOT EXISTS post__thread ON Post(thread);
+-- create index IF NOT EXISTS post__id_thread ON post(id, thread);
+-- create index IF NOT EXISTS post__path__first ON Post((path[1]));
+-- create index IF NOT EXISTS post_forum_author ON post(forum, author);
+-- create index post_parent_thread_path_id ON Post(thread, (path[1]), id) WHERE parent IS NUll;
+-- CREATE INDEX IF NOT EXISTS idx_sth ON Post (lower(author));
+
+-- CREATE UNIQUE INDEX thread_slug_index on Thread (LOWER(slug));
+-- CREATE INDEX IF NOT EXISTS thread_author ON Thread (lower(author));
+-- create index IF NOT EXISTS thread_forum ON thread(forum);
+-- create index IF NOT EXISTS thread_forum_created on Thread(lower(forum), created);
+
+-- create index IF NOT EXISTS vote_coverage On Vote(thread, lower(author), vote);
+
+-- create unique index forum_users_idx ON UsersInForum(forum, nickname);
+-- cluster UsersInForum USING forum_users_idx;

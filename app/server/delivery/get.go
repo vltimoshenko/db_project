@@ -186,7 +186,7 @@ func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 		str := paramsMap["related"]
 		params = strings.Split(str[0], ",")
 
-		fmt.Printf("RELATED %s\n", params)
+		// fmt.Printf("RELATED %s\n", params)
 	}
 
 	var postInfo map[string]interface{}

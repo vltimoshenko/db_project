@@ -19,13 +19,13 @@ func (s Service) CreatePosts(posts []Post, slugOrId string) ([]Post, error) {
 		thread, err = s.Repository.GetThreadByID(threadID)
 	}
 	if err != nil {
-		fmt.Printf("Service CreatePosts: %s\n", err.Error())
+		// fmt.Printf("Service CreatePosts: %s\n", err.Error())
 		return []Post{}, errors.New(messages.ThreadDoesNotExist)
 	}
 
 	returnPosts, err := s.Repository.CreatePosts(posts, thread.ID, thread.Forum) //turn into int64
 	if err != nil {
-		fmt.Printf("Service CreatePosts: %s\n", err.Error())
+		// fmt.Printf("Service CreatePosts: %s\n", err.Error())
 		return returnPosts, err
 	}
 	return returnPosts, err
@@ -48,13 +48,13 @@ func (s Service) Vote(vote Vote, slugOrId string) (Thread, error) {
 	if err != nil {
 		err = s.Repository.CreateVote(vote, slugOrId)
 		if err != nil {
-			fmt.Printf("Vote: %s\n", err.Error())
+			// fmt.Printf("Vote: %s\n", err.Error())
 			return Thread{}, fmt.Errorf(messages.UserNotFound)
 		}
 	} else {
 		err = s.Repository.ChangeVote(vote, slugOrId)
 		if err != nil {
-			fmt.Printf("Vote: %s\n", err.Error())
+			// fmt.Printf("Vote: %s\n", err.Error())
 			return Thread{}, fmt.Errorf(messages.UserNotFound)
 		}
 	}
@@ -79,7 +79,7 @@ func (s Service) CreateUser(newUser NewUser, nickname string) ([]User, error) {
 	err := s.Repository.CreateUser(newUser, nickname)
 
 	if err != nil {
-		fmt.Printf("Service CreateUser: %s\n", err)
+		// fmt.Printf("Service CreateUser: %s\n", err)
 		userByNickname, err := s.Repository.GetUserByNickname(nickname)
 		if err == nil {
 			users = append(users, userByNickname)
@@ -90,7 +90,7 @@ func (s Service) CreateUser(newUser NewUser, nickname string) ([]User, error) {
 			users = append(users, userByEmail)
 		}
 
-		fmt.Printf("Len users: %d\n", len(users))
+		// fmt.Printf("Len users: %d\n", len(users))
 		if len(users) > 0 {
 			return users, fmt.Errorf(messages.UserAlreadyExists)
 		}
@@ -156,7 +156,7 @@ func (s Service) CreateThread(thread NewThread, forumSlug string) (Thread, error
 		Votes:   0,
 	}
 	if err != nil {
-		fmt.Printf("CreateThread: %s", err.Error())
+		// fmt.Printf("CreateThread: %s", err.Error())
 		err = fmt.Errorf(messages.UserNotFound)
 	}
 
