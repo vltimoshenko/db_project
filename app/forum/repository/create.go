@@ -84,7 +84,6 @@ func (r *Repository) CreatePosts(posts []Post, threadID int64, forum string) ([]
 	if len(posts) == 0 {
 		return posts, nil
 	}
-	PacketSize := 30
 	created := time.Now().Format(time.RFC3339)
 
 	for i := 0; i < len(posts); i += PacketSize {

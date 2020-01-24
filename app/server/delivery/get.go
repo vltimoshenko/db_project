@@ -15,9 +15,7 @@ import (
 )
 
 func (h *Handler) GetThread(w http.ResponseWriter, r *http.Request) { //+
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 200
+	w.Header().Set("Content-Type", "application/json;")
 
 	slugOrID, _ := mux.Vars(r)["slug_or_id"]
 	// if !ok {
@@ -33,15 +31,13 @@ func (h *Handler) GetThread(w http.ResponseWriter, r *http.Request) { //+
 		}
 	}
 
-	w.WriteHeader(code)
+	w.WriteHeader(200)
 	answer, _ := thread.MarshalJSON()
 	w.Write(answer)
 }
 
 func (h *Handler) GetForum(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 200
+	w.Header().Set("Content-Type", "application/json;")
 
 	forumSlug, _ := mux.Vars(r)["slug"]
 	// if !ok {
@@ -50,6 +46,7 @@ func (h *Handler) GetForum(w http.ResponseWriter, r *http.Request) {
 
 	forum, err := h.Service.GetForum(forumSlug)
 
+	code := 200
 	if err != nil {
 		if err.Error() == messages.ThreadAlreadyExists {
 			code = 409
@@ -72,8 +69,7 @@ func (h *Handler) GetForum(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetThreads(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 200
+	w.Header().Set("Content-Type", "application/json;")
 
 	forumSlug, ok := mux.Vars(r)["slug"]
 
@@ -89,30 +85,17 @@ func (h *Handler) GetThreads(w http.ResponseWriter, r *http.Request) {
 	threads, err := h.Service.GetThreads(params)
 
 	if err != nil {
-		// if err.Error() == messages.ThreadAlreadyExists {
-		// 	code = 409
-		// }
-
-		// if err.Error() == messages.UserNotFound {
-		// 	SetError(w, 404, err.Error())
-		// 	return
-		// }
-		// if err.Error() == messages.ForumDoesNotExist {
-		// fmt.Printf("GetThreads: %s", err.Error())
 		SetError(w, 404, err.Error())
 		return
-		// }
 	}
 
-	w.WriteHeader(code)
+	w.WriteHeader(200)
 	answer, _ := threads.MarshalJSON()
 	w.Write(answer)
 }
 
 func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 200
+	w.Header().Set("Content-Type", "application/json;")
 
 	forumSlug, _ := mux.Vars(r)["slug"]
 
@@ -134,15 +117,13 @@ func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.WriteHeader(code)
+	w.WriteHeader(200)
 	answer, _ := users.MarshalJSON()
 	w.Write(answer)
 }
 
 func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 200
+	w.Header().Set("Content-Type", "application/json;")
 
 	nickname, _ := mux.Vars(r)["nickname"]
 	// if !ok {
@@ -159,15 +140,13 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.WriteHeader(code)
+	w.WriteHeader(200)
 	answer, _ := user.MarshalJSON()
 	w.Write(answer)
 }
 
 func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 200
+	w.Header().Set("Content-Type", "application/json;")
 
 	idStr, _ := mux.Vars(r)["id"]
 	// if !ok {
@@ -200,15 +179,12 @@ func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	answer, _ := json.Marshal(postInfo)
-	w.WriteHeader(code)
+	w.WriteHeader(200)
 	w.Write(answer)
 }
 
 func (h *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 200
+	w.Header().Set("Content-Type", "application/json;")
 
 	slugOrID, _ := mux.Vars(r)["slug_or_id"]
 
@@ -236,7 +212,7 @@ func (h *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.WriteHeader(code)
+	w.WriteHeader(200)
 	answer, _ := posts.MarshalJSON()
 	w.Write(answer)
 }

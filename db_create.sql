@@ -114,10 +114,14 @@ CREATE OR REPLACE FUNCTION update_thread_votes_counter() RETURNS TRIGGER AS
 $BODY$
     BEGIN
         IF TG_OP = 'INSERT' THEN
-            UPDATE threads SET votes = votes + NEW.voice WHERE id = NEW.thread;
+            UPDATE threads 
+            SET votes = votes + NEW.voice 
+            WHERE id = NEW.thread;
             RETURN NEW;
         ELSIF TG_OP = 'UPDATE' THEN
-            UPDATE threads SET votes = votes + NEW.voice - OLD.voice WHERE id = NEW.thread;
+            UPDATE threads 
+            SET votes = votes + NEW.voice - OLD.voice 
+            WHERE id = NEW.thread;
             RETURN NEW;
         ELSE
             RAISE EXCEPTION 'Invalid call update_thread_votes_counter()';
@@ -136,8 +140,8 @@ CREATE TRIGGER update_thread_vote AFTER INSERT OR UPDATE ON votes
 --     nickname CITEXT NOT NULL,
 --     about TEXT NOT NULL DEFAULT '',
 --     email CITEXT NOT NULL UNIQUE,
---     fullname TEXT NOT NULL DEFAULT '',
---     PRIMARY KEY(forum, nickname)
+--     fullname TEXT NOT NULL DEFAULT ''
+--     -- PRIMARY KEY(forum, nickname)
 -- );
 
 CREATE UNLOGGED TABLE forum_users (
@@ -153,7 +157,7 @@ CREATE UNLOGGED TABLE forum_users (
 --         FROM persons
 --         WHERE nickname = NEW.author
 --         ON CONFLICT DO NOTHING;
---         RETURN NULL;
+--         RETURN NEW;
 --     END;
 -- $BODY$
 -- LANGUAGE plpgsql;
@@ -172,7 +176,23 @@ CREATE TRIGGER forum_user_after_thread AFTER INSERT ON threads
 
 -- CREATE TRIGGER forum_user_after_post AFTER INSERT ON posts
 --     FOR EACH ROW EXECUTE PROCEDURE add_user_to_forum();
-    
+
+
+-- CREATE OR REPLACE FUNCTION change_forum_user() RETURNS TRIGGER AS
+-- $BODY$
+--     BEGIN
+--         UPDATE forum_users
+--         SET about = NEW.about, email = NEW.email, fullname = NEW.fullname
+--         WHERE nickname = NEW.nickname;
+--         RETURN NEW;
+--     END;
+-- $BODY$
+-- LANGUAGE plpgsql;
+
+
+-- CREATE TRIGGER change_forum_user AFTER UPDATE ON persons
+--     FOR EACH ROW EXECUTE PROCEDURE change_forum_user();
+
 
 CREATE UNIQUE INDEX idx_persons_nickname ON persons(nickname); --+
 CREATE INDEX IF NOT EXISTS idx_persons_email ON persons(email); --+
@@ -193,4 +213,7 @@ CREATE INDEX IF NOT EXISTS idx_threads_forum_created ON threads(forum, created);
 
 CREATE INDEX IF NOT EXISTS idx_votes_coverage ON votes(thread, nickname) INCLUDE (voice); --+
 
+-- CREATE INDEX IF NOT EXISTS idx_forum_users_nickname ON forum_users(nickname);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_forum_users ON forum_users(forum, nickname);
+-- CLUSTER forum_users USING idx_forum_users;
+

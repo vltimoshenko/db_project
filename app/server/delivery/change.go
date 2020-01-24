@@ -12,9 +12,7 @@ import (
 )
 
 func (h *Handler) ChangeThread(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 200
+	w.Header().Set("Content-Type", "application/json;")
 
 	slugOrID, _ := mux.Vars(r)["slug_or_id"]
 	// if !ok {
@@ -22,6 +20,8 @@ func (h *Handler) ChangeThread(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	bytes, _ := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+
 	// if err != nil {
 	// 	//
 	// }
@@ -42,14 +42,12 @@ func (h *Handler) ChangeThread(w http.ResponseWriter, r *http.Request) {
 
 	answer, _ := json.Marshal(thread)
 
-	w.WriteHeader(code)
+	w.WriteHeader(200)
 	w.Write(answer)
 }
 
 func (h *Handler) ChangeUser(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 200
+	w.Header().Set("Content-Type", "application/json;")
 
 	nickname, _ := mux.Vars(r)["nickname"]
 	// if !ok {
@@ -57,6 +55,8 @@ func (h *Handler) ChangeUser(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	bytes, _ := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+
 	// if err != nil {
 	// 	//
 	// }
@@ -67,6 +67,7 @@ func (h *Handler) ChangeUser(w http.ResponseWriter, r *http.Request) {
 
 	// }
 
+	code := 200
 	user, err := h.Service.ChangeUser(newUser, nickname)
 	if err != nil {
 		if err.Error() == messages.UserAlreadyExists {
@@ -86,9 +87,7 @@ func (h *Handler) ChangeUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ChangePost(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 200
+	w.Header().Set("Content-Type", "application/json;")
 
 	idStr, _ := mux.Vars(r)["id"]
 	// if !ok {
@@ -101,6 +100,8 @@ func (h *Handler) ChangePost(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	bytes, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+
 	// if err != nil {
 	// 	//
 	// }
@@ -121,6 +122,6 @@ func (h *Handler) ChangePost(w http.ResponseWriter, r *http.Request) {
 
 	answer, _ := json.Marshal(post)
 
-	w.WriteHeader(code)
+	w.WriteHeader(200)
 	w.Write(answer)
 }

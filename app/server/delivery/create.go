@@ -13,7 +13,7 @@ import (
 
 func (h *Handler) CreatePosts(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.Header().Set("Content-Type", "application/json;")
 	code := 201
 
 	slugOrId, ok := mux.Vars(r)["slug_or_id"]
@@ -56,11 +56,11 @@ func (h *Handler) CreatePosts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CreateForum(w http.ResponseWriter, r *http.Request) { //+
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 201
+	w.Header().Set("Content-Type", "application/json;")
 
 	bytes, _ := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+
 	// if err != nil {
 	// 	//return uuid.UUID{}, errors.New(BadRequestMsg)
 	// }
@@ -76,6 +76,8 @@ func (h *Handler) CreateForum(w http.ResponseWriter, r *http.Request) { //+
 	retForum, err := h.Service.CreateForum(forum)
 
 	var answer []byte
+	code := 201
+
 	if err != nil {
 		if err.Error() == messages.ForumAlreadyExists {
 			code = 409
@@ -100,9 +102,7 @@ func (h *Handler) CreateForum(w http.ResponseWriter, r *http.Request) { //+
 }
 
 func (h *Handler) CreateThread(w http.ResponseWriter, r *http.Request) { //+
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 201
+	w.Header().Set("Content-Type", "application/json;")
 
 	forumSlug, _ := mux.Vars(r)["slug"]
 	// if !ok {
@@ -110,6 +110,8 @@ func (h *Handler) CreateThread(w http.ResponseWriter, r *http.Request) { //+
 	// }
 
 	bytes, _ := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+
 	// if err != nil {
 	// }
 
@@ -120,6 +122,7 @@ func (h *Handler) CreateThread(w http.ResponseWriter, r *http.Request) { //+
 
 	forum, err := h.Service.CreateThread(thread, forumSlug)
 
+	code := 201
 	if err != nil {
 		if err.Error() == messages.ThreadAlreadyExists {
 			code = 409
@@ -142,9 +145,7 @@ func (h *Handler) CreateThread(w http.ResponseWriter, r *http.Request) { //+
 }
 
 func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
 	w.Header().Set("Content-Type", "application/json")
-	code := 201
 
 	nickname, _ := mux.Vars(r)["nickname"]
 	// if !ok {
@@ -152,6 +153,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	bytes, _ := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
 	// if err != nil {
 	// 	//
 	// }
@@ -162,6 +164,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// }
 
+	code := 201
 	users, err := h.Service.CreateUser(newUser, nickname)
 	if err != nil {
 		if err.Error() == messages.UserAlreadyExists {
@@ -182,15 +185,15 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Vote(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 200
+	w.Header().Set("Content-Type", "application/json;")
 
 	slugOrId, _ := mux.Vars(r)["slug_or_id"]
 	// if !ok {
 	// }
 
 	bytes, _ := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+
 	// if err != nil {
 	// 	//
 	// }
@@ -211,6 +214,6 @@ func (h *Handler) Vote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	answer, _ := json.Marshal(thread)
-	w.WriteHeader(code)
+	w.WriteHeader(200)
 	w.Write(answer)
 }

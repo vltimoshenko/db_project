@@ -19,36 +19,21 @@ func SetError(w http.ResponseWriter, code int, msg string) {
 }
 
 func (h *Handler) Clear(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 200
+	w.Header().Set("Content-Type", "application/json;")
 
 	_ = h.Service.ClearDB()
-	// if err != nil {
-	// 	if err.Error() == messages.UserAlreadyExists {
-	// 		code = 409
-	// 	}
-	// 	// if err.Error() == messages.UserNotFound {
-	// 	// 	SetError(w, 404, err.Error())
-	// 	// 	return
-	// 	// }
-	// 	log.Println(err.Error())
-	// }
-
-	w.WriteHeader(code)
+	w.WriteHeader(200)
 }
 
 func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	code := 200
+	w.Header().Set("Content-Type", "application/json;")
 
 	status, _ := h.Service.GetStatus()
 	// if err != nil {
 	// 	SetError(w, 500, err.Error())
 	// }
-	answer, _ := status.MarshalJSON()
 
-	w.WriteHeader(code)
+	answer, _ := status.MarshalJSON()
+	w.WriteHeader(200)
 	w.Write(answer)
 }

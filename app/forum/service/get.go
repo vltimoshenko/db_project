@@ -80,7 +80,7 @@ func (s Service) getPostWorker(postInfo map[string]interface{}, post *Post, para
 	defer wg.Done()
 	switch param {
 	case "user":
-		user, _ := s.Repository.GetUserByNickname(post.Author)
+		user, _ := s.Repository.GetUserByNickname(post.Author)		
 		mu.Lock()
 		postInfo["author"] = user
 		mu.Unlock()
