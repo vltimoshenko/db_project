@@ -55,22 +55,22 @@ func (s Service) GetPost(postID int64, params []string) (map[string]interface{},
 
 	postInfo["post"] = post
 	// could do by gorutines
-	wg := sync.WaitGroup{}
-	mu := sync.Mutex{}
+	// wg := sync.WaitGroup{}
+	// mu := sync.Mutex{}
 	for _, obj := range params {
-		wg.Add(1)
-		// switch obj {
-		// case "user":
-		// 	postInfo["author"], _ = s.Repository.GetUserByNickname(post.Author)
-		// case "forum":
-		// 	postInfo["forum"], _ = s.Repository.GetForumBySlug(post.Forum)
-		// case "thread":
-		// 	postInfo["thread"], _ = s.Repository.GetThreadByID(post.Thread)
-		// }
-		go s.getPostWorker(postInfo, &post, obj, &wg, &mu)
+		// wg.Add(1)
+		switch obj {
+		case "user":
+			postInfo["author"], _ = s.Repository.GetUserByNickname(post.Author)
+		case "forum":
+			postInfo["forum"], _ = s.Repository.GetForumBySlug(post.Forum)
+		case "thread":
+			postInfo["thread"], _ = s.Repository.GetThreadByID(post.Thread)
+		}
+		// go s.getPostWorker(postInfo, &post, obj, &wg, &mu)
 	}
 
-	wg.Wait()
+	// wg.Wait()
 	return postInfo, err
 }
 
@@ -103,16 +103,14 @@ func (s Service) GetPosts(slugOrID string, limit int64, since string, sort strin
 	var thread Thread
 	if err != nil {
 		thread, err = s.Repository.GetThreadBySlug(slugOrID)
-	} else {
-		thread, err = s.Repository.GetThreadByID(threadID)
+		threadID = thread.ID
+		if err != nil {
+			// fmt.Println(err)
+			return []Post{}, fmt.Errorf(messages.ThreadDoesNotExist)
+		}
 	}
 
-	if err != nil {
-		// fmt.Println(err)
-		return []Post{}, fmt.Errorf(messages.ThreadDoesNotExist)
-	}
-
-	posts, err := s.Repository.GetPosts(thread.ID, limit, since, sort, desc)
+	posts, err := s.Repository.GetPosts(threadID, limit, since, sort, desc)
 
 	return posts, err
 }

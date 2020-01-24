@@ -13,16 +13,6 @@ import (
 func (r *Repository) GetThreadByID(id int64) (Thread, error) {
 	row := r.DbConn.QueryRowx(sql_queries.SelectThreadByID, id)
 
-	// thread := Thread{}
-	// // var timetz time.Time
-	// err := row.StructScan(&thread)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return thread, fmt.Errorf(messages.ThreadDoesNotExist)
-	// }
-	// // thread.Created = timetz.Format(time.RFC3339Nano)
-	// c := 'd'
-	// fmt.Println(c)
 	var thread Thread
 	var slug pgtype.Text
 
@@ -39,12 +29,6 @@ func (r *Repository) GetThreadByID(id int64) (Thread, error) {
 func (r *Repository) GetThreadBySlug(threadSlug string) (Thread, error) {
 	row := r.DbConn.QueryRowx(sql_queries.SelectThreadBySlug, threadSlug)
 
-	// var thread Thread
-	// err := row.StructScan(&thread)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return thread, fmt.Errorf(messages.ThreadDoesNotExist)
-	// }
 	var thread Thread
 	var slug pgtype.Text
 
@@ -267,5 +251,9 @@ func (r *Repository) GetPosts(threadID int64, limit int64, since string, sort st
 		posts = append(posts, post)
 	}
 
-	return posts, nil
+	if len(posts) == 0 {
+		_, err = r.GetThreadByID(threadID)
+	}
+
+	return posts, err
 }
